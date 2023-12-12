@@ -18,10 +18,15 @@ fun Application.module() {
 }
 
 val youtubeLinks = listOf(
-    "https://www.youtube.com/watch?v=aKSxbt-O6TA",
-    "https://www.youtube.com/watch?v=7C2z4GqqS5E",
-    "https://www.youtube.com/watch?v=eaUpme4jalE",
+    "https://www.youtube.com/embed/aKSxbt-O6TA",
+    "https://www.youtube.com/embed/7C2z4GqqS5E",
+    "https://www.youtube.com/embed/Onq7Njnlug4?si=XH7ltXMRyTQ7EXiH"
 )
+
+fun getRandomYouTubeVideoUrl(): String {
+    val randomIndex = (0 until youtubeLinks.size).random()
+    return youtubeLinks[randomIndex]
+}
 
 fun Application.configureRouting() {
     routing {
@@ -32,15 +37,26 @@ fun Application.configureRouting() {
                 }
                 body {
                     h1 { +"Random MV player" }
+                    iframe {
+                        width = "560"
+                        height = "315"
+                        src = getRandomYouTubeVideoUrl()
+                        attributes["allowfullscreen"] = ""
+                    }
                     button {
-                        +"Click me for a random mv!"
+                        +"Click me for a different random MV!"
                         script {
                             unsafe {
                                 raw("""
                                     document.addEventListener('DOMContentLoaded', function() {
                                         document.querySelector('button').onclick = function(event) {
                                             if (event.target === this) {
-                                                alert('Button clicked!');
+                                                this.onclick = function() {
+                                                    var links = ${youtubeLinks.joinToString(prefix = "[", postfix = "]", transform = { "\"$it\"" })};
+                                                    var randomIndex = Math.floor(Math.random() * links.length);
+                                                    var randomLink = links[randomIndex];
+                                                    document.querySelector('iframe').src = randomLink;
+                                                }
                                             }
                                         };
                                     });
@@ -53,6 +69,7 @@ fun Application.configureRouting() {
         }
     }
 }
+
 
 
 
