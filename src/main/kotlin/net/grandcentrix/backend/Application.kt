@@ -25,13 +25,13 @@ fun Application.configureRouting() {
                     title { +"Ktor Sample" }
                 }
                 body {
-                    h1 { +"Hello World!" }
+                    h1 { +"Random Mv player!!" }
                     button {
-                        +"Click me!"
-                        onClick = "alert('Button clicked!');"
+                        +"Click me for a random mv!"
                     }
                 }
             }
         }
     }
 }
+
