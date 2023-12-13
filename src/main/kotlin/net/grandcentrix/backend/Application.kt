@@ -5,7 +5,6 @@ import io.ktor.server.html.*
 import io.ktor.server.routing.*
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import io.ktor.server.routing.head
 import kotlinx.html.*
 
 fun main() {
@@ -48,19 +47,14 @@ fun Application.configureRouting() {
                         script {
                             unsafe {
                                 raw("""
-                                    document.addEventListener('DOMContentLoaded', function() {
-                                        document.querySelector('button').onclick = function(event) {
-                                            if (event.target === this) {
-                                                this.onclick = function() {
-                                                    var links = ${youtubeLinks.joinToString(prefix = "[", postfix = "]", transform = { "\"$it\"" })};
-                                                    var randomIndex = Math.floor(Math.random() * links.length);
-                                                    var randomLink = links[randomIndex];
-                                                    document.querySelector('iframe').src = randomLink;
-                                                }
-                                            }
-                                        };
-                                    });
-                                """.trimIndent())
+                                        document.addEventListener('DOMContentLoaded', function() {
+                                            document.querySelector('button').onclick = function() {
+                                                window.location.reload();
+                                                document.querySelector('iframe').src = getRandomYouTubeVideoUrl();
+                                            };
+                                        });
+
+                                """)
                             }
                         }
                     }
@@ -69,7 +63,6 @@ fun Application.configureRouting() {
         }
     }
 }
-
 
 
 
