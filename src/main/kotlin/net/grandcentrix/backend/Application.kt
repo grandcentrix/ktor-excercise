@@ -1,7 +1,6 @@
 package net.grandcentrix.backend
 
 
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.html.*
 import io.ktor.server.routing.*
@@ -12,6 +11,7 @@ import io.ktor.server.response.*
 import kotlinx.html.*
 import io.ktor.http.HttpStatusCode
 import java.io.File
+import java.util.regex.Pattern
 
 fun main() {
     embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
@@ -49,11 +49,6 @@ fun Application.configureRouting() {
                         onClick = "window.location.reload();"
                         +"Click me for a different random MV!"
                     }
-                    button {
-                        type = ButtonType.button
-                        onClick = "openAddVideoDialog();"
-                        +"Add New Video"
-                    }
 
                     h2 { +"Link to each MV" }
                     ul {
@@ -90,15 +85,24 @@ fun Application.configureRouting() {
         post("/addVideo") {
             val parameters = call.receiveParameters()
             val newVideoUrl = parameters["newVideoUrl"]
-            if (!newVideoUrl.isNullOrBlank()) {
-                // Assuming validation logic before adding the URL
-                // For simplicity, it directly adds the URL here
-                youtubeLinks.add(newVideoUrl)
-                saveYouTubeLinks()
-                call.respond(HttpStatusCode.OK)
-            } else {
-                call.respond(HttpStatusCode.BadRequest, "Invalid URL")
+            val youtubeUrlRegex = "^https?://(?:www\\.)?youtube\\.com/watch\\?(?=.*v=\\w+)(?:\\S+)?$".toRegex()
+
+            if (!newVideoUrl.isNullOrBlank() && newVideoUrl.matches(youtubeUrlRegex)) {
+                // Extract video ID from the YouTube URL
+                val videoId = extractYouTubeVideoId(newVideoUrl)
+
+                if (videoId != null) {
+                    // Construct the embedded YouTube URL
+                    val embeddedUrl = "https://www.youtube.com/embed/$videoId"
+
+                    youtubeLinks.add(embeddedUrl)
+                    saveYouTubeLinks()
+                    call.respond(HttpStatusCode.OK)
+                } else {
+                    call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL")
+                }
             }
+
         }
 
         post("/deleteVideo") {
@@ -116,6 +120,18 @@ fun Application.configureRouting() {
     }
 }
 
+private fun extractYouTubeVideoId(url: String): String? {
+    val pattern = "(?<=watch\\?v=|/videos/|embed\\/|youtu.be\\/|\\/v\\/|\\/e\\/|watch\\?v%3D|watch\\?feature=player_embedded&v=|%2Fvideos%2F|embed\\\\%2F|youtu.be%2F|%2Fv%2F)[^#\\&\\?\\n]*"
+    val compiledPattern = Pattern.compile(pattern)
+    val matcher = compiledPattern.matcher(url)
+
+    return if (matcher.find()) {
+        matcher.group()
+    } else {
+        null
+    }
+}
+
 private fun loadYouTubeLinks() {
     val file = File("youtubeLinks.txt")
     if (file.exists()) {
@@ -128,4 +144,3 @@ private fun saveYouTubeLinks() {
     val file = File("youtubeLinks.txt")
     file.writeText(youtubeLinks.joinToString("\n"))
 }
-
