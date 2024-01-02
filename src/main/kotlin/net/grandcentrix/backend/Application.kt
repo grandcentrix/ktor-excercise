@@ -12,6 +12,9 @@ import kotlinx.html.*
 import io.ktor.http.HttpStatusCode
 import java.io.File
 import java.util.regex.Pattern
+import java.net.URL
+import java.net.MalformedURLException
+
 
 fun main() {
     embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
@@ -85,25 +88,31 @@ fun Application.configureRouting() {
         post("/addVideo") {
             val parameters = call.receiveParameters()
             val newVideoUrl = parameters["newVideoUrl"]
-            val youtubeUrlRegex = "^https?://(?:www\\.)?youtube\\.com/watch\\?(?=.*v=\\w+)(?:\\S+)?$".toRegex()
 
-            if (!newVideoUrl.isNullOrBlank() && newVideoUrl.matches(youtubeUrlRegex)) {
-                // Extract video ID from the YouTube URL
-                val videoId = extractYouTubeVideoId(newVideoUrl)
+            if (!newVideoUrl.isNullOrBlank()) {
 
-                if (videoId != null) {
-                    // Construct the embedded YouTube URL
-                    val embeddedUrl = "https://www.youtube.com/embed/$videoId"
+                    val url = URL(newVideoUrl)
+                    val host = url.host
 
-                    youtubeLinks.add(embeddedUrl)
-                    saveYouTubeLinks()
-                    call.respond(HttpStatusCode.OK)
-                } else {
-                    call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL")
-                }
+                    if (host == "www.youtube.com" || host == "youtube.com") {
+                        val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
+
+                        if (!videoId.isNullOrBlank()) {
+                            val embeddedUrl = "https://www.youtube.com/embed/$videoId"
+                            youtubeLinks.add(embeddedUrl)
+                            saveYouTubeLinks()
+                            call.respondRedirect("/")
+                        } else {
+                            call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Video ID not found")
+                        }
+                    } else {
+                        call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Host is not supported")
+                    }
+            } else {
+                call.respond(HttpStatusCode.BadRequest, "URL is required")
             }
-
         }
+
 
         post("/deleteVideo") {
             val parameters = call.receiveParameters()
@@ -117,18 +126,6 @@ fun Application.configureRouting() {
             }
         }
 
-    }
-}
-
-private fun extractYouTubeVideoId(url: String): String? {
-    val pattern = "(?<=watch\\?v=|/videos/|embed\\/|youtu.be\\/|\\/v\\/|\\/e\\/|watch\\?v%3D|watch\\?feature=player_embedded&v=|%2Fvideos%2F|embed\\\\%2F|youtu.be%2F|%2Fv%2F)[^#\\&\\?\\n]*"
-    val compiledPattern = Pattern.compile(pattern)
-    val matcher = compiledPattern.matcher(url)
-
-    return if (matcher.find()) {
-        matcher.group()
-    } else {
-        null
     }
 }
 
