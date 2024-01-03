@@ -91,23 +91,23 @@ fun Application.configureRouting() {
 
             if (!newVideoUrl.isNullOrBlank()) {
 
-                    val url = URL(newVideoUrl)
-                    val host = url.host
+                val url = URL(newVideoUrl)
+                val host = url.host
 
-                    if (host == "www.youtube.com" || host == "youtube.com") {
-                        val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
+                if (host == "www.youtube.com" || host == "youtube.com") {
+                    val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
 
-                        if (!videoId.isNullOrBlank()) {
-                            val embeddedUrl = "https://www.youtube.com/embed/$videoId"
-                            youtubeLinks.add(embeddedUrl)
-                            saveYouTubeLinks()
-                            call.respondRedirect("/")
-                        } else {
-                            call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Video ID not found")
-                        }
+                    if (!videoId.isNullOrBlank()) {
+                        val embeddedUrl = "https://www.youtube.com/embed/$videoId"
+                        youtubeLinks.add(embeddedUrl)
+                        saveYouTubeLinks()
+                        call.respondRedirect("/")
                     } else {
-                        call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Host is not supported")
+                        call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Video ID not found")
                     }
+                } else {
+                    call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Host is not supported")
+                }
             } else {
                 call.respond(HttpStatusCode.BadRequest, "URL is required")
             }
