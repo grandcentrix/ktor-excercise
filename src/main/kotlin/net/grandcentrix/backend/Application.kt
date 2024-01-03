@@ -11,9 +11,8 @@ import io.ktor.server.response.*
 import kotlinx.html.*
 import io.ktor.http.HttpStatusCode
 import java.io.File
-import java.util.regex.Pattern
 import java.net.URL
-import java.net.MalformedURLException
+
 
 
 fun main() {
@@ -30,7 +29,8 @@ val youtubeLinks = mutableListOf<String>()
 
 fun getRandomYouTubeVideoUrl(): String {
     val randomIndex = (0 until youtubeLinks.size).random()
-    return youtubeLinks[randomIndex]
+    val videoId = youtubeLinks[randomIndex]
+    return "https://www.youtube.com/embed/$videoId"
 }
 
 fun Application.configureRouting() {
@@ -55,21 +55,32 @@ fun Application.configureRouting() {
 
                     h2 { +"Link to each MV" }
                     ul {
-                        youtubeLinks.forEach { link ->
+                        youtubeLinks.forEachIndexed { index, videoId ->
                             li {
-                                a(href = link) { +link }
+                                val videoNumber = index + 1
+                                val videoUrl = "https://www.youtube.com/watch?v=$videoId"
+                                +"$videoNumber. "
+                                a(href = videoUrl, target = "_blank") { +videoUrl }
                                 form(action = "/deleteVideo", method = FormMethod.post) {
                                     hiddenInput {
                                         name = "videoToDelete"
-                                        value = link
+                                        value = videoId
                                     }
-                                    submitInput {
-                                        value = "Delete"
                                     }
                                 }
                             }
                         }
+
+                    form(action = "/deleteVideoByNumber", method = FormMethod.post) {
+                        textInput {
+                            name = "videoNumberToDelete"
+                            placeholder = "Enter video number"
+                        }
+                        submitInput {
+                            value = "Delete"
+                        }
                     }
+
 
                     form(action = "/addVideo", method = FormMethod.post) {
                         textInput {
@@ -81,6 +92,7 @@ fun Application.configureRouting() {
                             onClick = "addNewVideo(); return false;"
                         }
                     }
+
                 }
             }
         }
@@ -90,7 +102,6 @@ fun Application.configureRouting() {
             val newVideoUrl = parameters["newVideoUrl"]
 
             if (!newVideoUrl.isNullOrBlank()) {
-
                 val url = URL(newVideoUrl)
                 val host = url.host
 
@@ -98,8 +109,7 @@ fun Application.configureRouting() {
                     val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
 
                     if (!videoId.isNullOrBlank()) {
-                        val embeddedUrl = "https://www.youtube.com/embed/$videoId"
-                        youtubeLinks.add(embeddedUrl)
+                        youtubeLinks.add(videoId)
                         saveYouTubeLinks()
                         call.respondRedirect("/")
                     } else {
@@ -114,15 +124,19 @@ fun Application.configureRouting() {
         }
 
 
-        post("/deleteVideo") {
+
+
+        post("/deleteVideoByNumber") {
             val parameters = call.receiveParameters()
-            val videoToDelete = parameters["videoToDelete"]
-            if (!videoToDelete.isNullOrBlank()) {
-                youtubeLinks.remove(videoToDelete)
+            val videoNumberToDelete = parameters["videoNumberToDelete"]?.toIntOrNull()
+
+            if (videoNumberToDelete != null && videoNumberToDelete > 0 && videoNumberToDelete <= youtubeLinks.size) {
+                val indexToDelete = videoNumberToDelete - 1
+                youtubeLinks.removeAt(indexToDelete)
                 saveYouTubeLinks()
                 call.respondRedirect("/")
             } else {
-                call.respond(HttpStatusCode.BadRequest, "Invalid video URL")
+                call.respond(HttpStatusCode.BadRequest, "Invalid video number")
             }
         }
 
