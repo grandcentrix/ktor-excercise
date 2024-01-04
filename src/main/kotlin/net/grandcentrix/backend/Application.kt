@@ -25,13 +25,24 @@ fun Application.module() {
     loadYouTubeLinks()
 }
 
-val youtubeLinks = mutableListOf<String>()
+data class VideoInfo(val videoId: String, val customName: String)
+
+val youtubeLinks = mutableListOf<VideoInfo>()
+
 
 fun getRandomYouTubeVideoUrl(): String {
+    if (youtubeLinks.isEmpty()) {
+        return "https://www.youtube.com/"
+    }
     val randomIndex = (0 until youtubeLinks.size).random()
-    val videoId = youtubeLinks[randomIndex]
+    val videoInfo = youtubeLinks[randomIndex]
+    val videoId = videoInfo.videoId
+
     return "https://www.youtube.com/embed/$videoId"
 }
+
+
+
 
 fun Application.configureRouting() {
     routing {
@@ -55,21 +66,22 @@ fun Application.configureRouting() {
 
                     h2 { +"Link to each MV" }
                     ul {
-                        youtubeLinks.forEachIndexed { index, videoId ->
+                        youtubeLinks.forEachIndexed { index, videoInfo ->
                             li {
                                 val videoNumber = index + 1
-                                val videoUrl = "https://www.youtube.com/watch?v=$videoId"
+                                val videoUrl = "https://www.youtube.com/watch?v=${videoInfo.videoId}"
                                 +"$videoNumber. "
-                                a(href = videoUrl, target = "_blank") { +videoUrl }
+                                a(href = videoUrl, target = "_blank") { +if (videoInfo.customName.isNotEmpty()) videoInfo.customName else videoUrl }
                                 form(action = "/deleteVideo", method = FormMethod.post) {
                                     hiddenInput {
                                         name = "videoToDelete"
-                                        value = videoId
-                                    }
+                                        value = videoInfo.videoId
                                     }
                                 }
                             }
                         }
+                    }
+
 
                     form(action = "/deleteVideoByNumber", method = FormMethod.post) {
                         textInput {
@@ -87,11 +99,16 @@ fun Application.configureRouting() {
                             name = "newVideoUrl"
                             placeholder = "Enter YouTube URL"
                         }
+                        textInput {
+                            name = "customName"
+                            placeholder = "Enter custom name"
+                        }
                         submitInput {
                             value = "Add new video"
                             onClick = "addNewVideo(); return false;"
                         }
                     }
+
 
                 }
             }
@@ -100,6 +117,7 @@ fun Application.configureRouting() {
         post("/addVideo") {
             val parameters = call.receiveParameters()
             val newVideoUrl = parameters["newVideoUrl"]
+            val customName = parameters["customName"] ?: ""
 
             if (!newVideoUrl.isNullOrBlank()) {
                 val url = URL(newVideoUrl)
@@ -109,7 +127,7 @@ fun Application.configureRouting() {
                     val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
 
                     if (!videoId.isNullOrBlank()) {
-                        youtubeLinks.add(videoId)
+                        youtubeLinks.add(VideoInfo(videoId, customName))
                         saveYouTubeLinks()
                         call.respondRedirect("/")
                     } else {
@@ -122,6 +140,9 @@ fun Application.configureRouting() {
                 call.respond(HttpStatusCode.BadRequest, "URL is required")
             }
         }
+
+
+
 
 
 
@@ -147,11 +168,19 @@ private fun loadYouTubeLinks() {
     val file = File("youtubeLinks.txt")
     if (file.exists()) {
         youtubeLinks.clear()
-        youtubeLinks.addAll(file.readLines())
+        youtubeLinks.addAll(file.readLines().map { line ->
+            val parts = line.split(",")
+            when {
+                parts.size == 1 -> VideoInfo(parts[0], "")
+                parts.size >= 2 -> VideoInfo(parts[0], parts[1])
+                else -> throw IllegalArgumentException("Invalid line format: $line")
+            }
+        })
     }
 }
 
+
 private fun saveYouTubeLinks() {
     val file = File("youtubeLinks.txt")
-    file.writeText(youtubeLinks.joinToString("\n"))
+    file.writeText(youtubeLinks.joinToString("\n") { "${it.videoId},${it.customName}" })
 }
