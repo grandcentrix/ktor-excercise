@@ -12,6 +12,7 @@ import kotlinx.html.*
 import io.ktor.http.HttpStatusCode
 import java.io.File
 import java.net.URL
+import org.apache.commons.csv.*
 
 
 
@@ -83,6 +84,7 @@ fun Application.configureRouting() {
                     }
 
 
+
                     form(action = "/deleteVideoByNumber", method = FormMethod.post) {
                         textInput {
                             name = "videoNumberToDelete"
@@ -142,11 +144,6 @@ fun Application.configureRouting() {
         }
 
 
-
-
-
-
-
         post("/deleteVideoByNumber") {
             val parameters = call.receiveParameters()
             val videoNumberToDelete = parameters["videoNumberToDelete"]?.toIntOrNull()
@@ -172,7 +169,7 @@ private fun loadYouTubeLinks() {
             val parts = line.split(",")
             when {
                 parts.size == 1 -> VideoInfo(parts[0], "")
-                parts.size >= 2 -> VideoInfo(parts[0], parts[1])
+                parts.size == 2 -> VideoInfo(parts[0], parts[1])
                 else -> throw IllegalArgumentException("Invalid line format: $line")
             }
         })
