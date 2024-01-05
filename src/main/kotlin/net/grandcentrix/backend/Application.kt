@@ -10,9 +10,12 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import kotlinx.html.*
 import io.ktor.http.HttpStatusCode
+import io.ktor.serialization.*
+import kotlinx.serialization.json.JsonPrimitive
 import java.io.File
 import java.net.URL
 import org.apache.commons.csv.*
+
 
 
 
@@ -162,22 +165,26 @@ fun Application.configureRouting() {
 }
 
 private fun loadYouTubeLinks() {
-    val file = File("youtubeLinks.txt")
+    val file = File("youtubeLinks.csv")
     if (file.exists()) {
         youtubeLinks.clear()
-        youtubeLinks.addAll(file.readLines().map { line ->
-            val parts = line.split(",")
-            when {
-                parts.size == 1 -> VideoInfo(parts[0], "")
-                parts.size == 2 -> VideoInfo(parts[0], parts[1])
-                else -> throw IllegalArgumentException("Invalid line format: $line")
-            }
-        })
+        val parser = CSVParser(file.reader(), CSVFormat.DEFAULT)
+        for (record in parser) {
+            val videoId = record.get(0)
+            val customName = if (record.size() > 1) record.get(1) else ""
+            youtubeLinks.add(VideoInfo(videoId, customName))
+        }
+        parser.close()
     }
 }
 
 
+
 private fun saveYouTubeLinks() {
-    val file = File("youtubeLinks.txt")
-    file.writeText(youtubeLinks.joinToString("\n") { "${it.videoId},${it.customName}" })
+    val file = File("youtubeLinks.csv")
+    val printer = CSVPrinter(file.writer(), CSVFormat.DEFAULT)
+    for (videoInfo in youtubeLinks) {
+        printer.printRecord(videoInfo.videoId, videoInfo.customName)
+    }
+    printer.close()
 }
