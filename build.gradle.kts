@@ -5,6 +5,7 @@ val logback_version = "1.4.2"
 plugins {
     kotlin("jvm") version "1.8.0"
     id("io.ktor.plugin") version "2.3.6"
+    kotlin("plugin.serialization") version "1.6.0"
 }
 
 group = "net.grandcentrix.backend"
