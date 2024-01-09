@@ -21,7 +21,7 @@ fun Application.configureRouting() {
                     iframe {
                         width = "560"
                         height = "315"
-                        src = getRandomYouTubeVideoUrl()
+                        src = YouTubeManager.getRandomYouTubeVideoUrl()
                         attributes["allowfullscreen"] = ""
                     }
                     button {
@@ -31,7 +31,7 @@ fun Application.configureRouting() {
 
                     h2 { +"Link to each MV" }
                     ul {
-                        youtubeLinks.forEachIndexed { index, videoInfo ->
+                        YouTubeManager.youtubeLinks.forEachIndexed { index, videoInfo ->
                             li {
                                 val videoNumber = index + 1
                                 val videoUrl = "https://www.youtube.com/watch?v=${videoInfo.videoId}"
@@ -93,8 +93,7 @@ fun Application.configureRouting() {
                     val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
 
                     if (!videoId.isNullOrBlank()) {
-                        youtubeLinks.add(VideoInfo(videoId, customName))
-                        saveYouTubeLinks()
+                        YouTubeManager.addVideo(videoId, customName)
                         call.respondRedirect("/")
                     } else {
                         call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Video ID not found")
@@ -112,15 +111,13 @@ fun Application.configureRouting() {
             val parameters = call.receiveParameters()
             val videoNumberToDelete = parameters["videoNumberToDelete"]?.toIntOrNull()
 
-            if (videoNumberToDelete != null && videoNumberToDelete > 0 && videoNumberToDelete <= youtubeLinks.size) {
+            if (videoNumberToDelete != null && videoNumberToDelete > 0 && videoNumberToDelete <= YouTubeManager.youtubeLinks.size) {
                 val indexToDelete = videoNumberToDelete - 1
-                youtubeLinks.removeAt(indexToDelete)
-                saveYouTubeLinks()
+                YouTubeManager.removeVideoByNumber(indexToDelete)
                 call.respondRedirect("/")
             } else {
                 call.respond(HttpStatusCode.BadRequest, "Invalid video number")
             }
         }
-
     }
 }
