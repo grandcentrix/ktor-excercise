@@ -44,13 +44,20 @@ interface YouTubeManagerInterface {
      * @param videoNumber The position of the video to be removed.
      */
     fun removeVideoByNumber(videoNumber: Int)
+
+    fun getYoutubeLinks(): List<VideoInfo>
 }
 
-object YouTubeManager : YouTubeManagerInterface {
+object JsonYouTubeManager : YouTubeManagerInterface {
 
     private val json = Json {}
 
-    val youtubeLinks = mutableListOf<VideoInfo>()
+    private val youtubeLinks = mutableListOf<VideoInfo>()
+
+    override fun getYoutubeLinks(): List<VideoInfo> {
+        return youtubeLinks
+    }
+
 
     override fun loadYouTubeLinks() {
         val file = File("youtubeLinks.json")
