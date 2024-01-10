@@ -9,6 +9,7 @@ import io.ktor.server.html.*
 import kotlinx.html.*
 import java.net.URL
 
+
 fun Application.configureRouting() {
     routing {
         get("/") {
