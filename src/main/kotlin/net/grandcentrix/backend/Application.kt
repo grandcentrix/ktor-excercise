@@ -3,12 +3,12 @@ package net.grandcentrix.backend
 import io.ktor.server.application.*
 
 fun Application.module() {
-    val youtubeManager = getYouTubeManager()
-    youtubeManager.loadYouTubeLinks()
+    val youtubeManager: YouTubeManagerInterface = getYouTubeManager()
     configureRouting(youtubeManager = youtubeManager)
 }
 
 fun getYouTubeManager(): YouTubeManagerInterface {
-    return InMemoryYouTubeManager
+    JsonYouTubeManagerObject.loadYouTubeLinks()
+    return InMemoryYouTubeManagerClass.InMemoryYouTubeManagerInstance
 
 }

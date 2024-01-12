@@ -13,16 +13,6 @@ data class VideoInfo(val videoId: String, val customName: String)
 interface YouTubeManagerInterface {
 
     /**
-     * Loads YouTube links.
-     */
-    fun loadYouTubeLinks()
-
-    /**
-     * Saves YouTube links.
-     */
-    fun saveYouTubeLinks()
-
-    /**
      * Retrieves a random YouTube video URL.
      *
      * @return A random YouTube video URL.
@@ -47,7 +37,7 @@ interface YouTubeManagerInterface {
     fun getYoutubeLinks(): List<VideoInfo>
 }
 
-object JsonYouTubeManager : YouTubeManagerInterface {
+object JsonYouTubeManagerObject : YouTubeManagerInterface {
 
     private val json = Json
     private val youtubeLinks = mutableListOf<VideoInfo>()
@@ -56,7 +46,7 @@ object JsonYouTubeManager : YouTubeManagerInterface {
         return youtubeLinks
     }
 
-    override fun loadYouTubeLinks() {
+    fun loadYouTubeLinks() {
         val file = java.io.File("youtubeLinks.json")
         if (file.exists()) {
             youtubeLinks.clear()
@@ -65,7 +55,7 @@ object JsonYouTubeManager : YouTubeManagerInterface {
         }
     }
 
-    override fun saveYouTubeLinks() {
+    fun saveYouTubeLinks() {
         val file = java.io.File("youtubeLinks.json")
         val jsonContent = json.encodeToString(youtubeLinks)
         file.writeText(jsonContent)
@@ -95,39 +85,40 @@ object JsonYouTubeManager : YouTubeManagerInterface {
     }
 }
 
-object InMemoryYouTubeManager : YouTubeManagerInterface {
+class  InMemoryYouTubeManagerClass private constructor(): YouTubeManagerInterface {
 
-    private val json = Json
-    private val youtubeLinks = mutableListOf<VideoInfo>()
-
-    override fun getYoutubeLinks(): List<VideoInfo> {
-        return youtubeLinks
+    companion object {
+        val  InMemoryYouTubeManagerInstance : InMemoryYouTubeManagerClass  = InMemoryYouTubeManagerClass()
     }
 
-    override fun loadYouTubeLinks() {
-    }
 
-    override fun saveYouTubeLinks() {
-    }
+        private val json = Json
+        private val youtubeLinks = mutableListOf<VideoInfo>()
 
-    override fun getRandomYouTubeVideoUrl(): String {
-        if (youtubeLinks.isEmpty()) {
-            return "https://www.youtube.com/"
+        override fun getYoutubeLinks(): List<VideoInfo> {
+            return youtubeLinks
         }
-        val randomIndex = (0 until youtubeLinks.size).random()
-        val videoInfo = youtubeLinks[randomIndex]
-        val videoId = videoInfo.videoId
 
-        return "https://www.youtube.com/embed/$videoId"
-    }
+        override fun getRandomYouTubeVideoUrl(): String {
+            if (youtubeLinks.isEmpty()) {
+                return "https://www.youtube.com/"
+            }
+            val randomIndex = (0 until youtubeLinks.size).random()
+            val videoInfo = youtubeLinks[randomIndex]
+            val videoId = videoInfo.videoId
 
-    override fun addVideo(videoId: String, customName: String) {
-        youtubeLinks.add(VideoInfo(videoId, customName))
-    }
+            return "https://www.youtube.com/embed/$videoId"
+        }
 
-    override fun removeVideoByNumber(videoNumber: Int) {
-        if (videoNumber >= 0 && videoNumber < youtubeLinks.size) {
-            youtubeLinks.removeAt(videoNumber)
+        override fun addVideo(videoId: String, customName: String) {
+            youtubeLinks.add(VideoInfo(videoId, customName))
+        }
+
+        override fun removeVideoByNumber(videoNumber: Int) {
+            if (videoNumber >= 0 && videoNumber < youtubeLinks.size) {
+                youtubeLinks.removeAt(videoNumber)
+            }
         }
     }
-}
+
+
