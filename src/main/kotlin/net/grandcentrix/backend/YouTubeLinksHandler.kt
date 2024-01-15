@@ -38,10 +38,13 @@ interface YouTubeManagerInterface {
 
     fun setPersistLinks(persist: Boolean)
 
-
 }
 
+
 class JsonYouTubeManagerObjectClass private constructor() : YouTubeManagerInterface {
+
+
+
 
     companion object {
         val JsonYouTubeManagerObjectInstance: JsonYouTubeManagerObjectClass = JsonYouTubeManagerObjectClass()
@@ -50,6 +53,10 @@ class JsonYouTubeManagerObjectClass private constructor() : YouTubeManagerInterf
     private val json = Json
     private val youtubeLinks = mutableListOf<VideoInfo>()
     private var persistLinks: Boolean = true
+
+
+    val persistInput: Boolean = readLine()?.toBoolean() ?: true
+
 
     override fun getYoutubeLinks(): List<VideoInfo> {
         return youtubeLinks
@@ -143,6 +150,7 @@ class  InMemoryYouTubeManagerClass private constructor(): YouTubeManagerInterfac
             }
         }
     }
+
 
 
 
