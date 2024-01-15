@@ -35,30 +35,43 @@ interface YouTubeManagerInterface {
     fun removeVideoByNumber(videoNumber: Int)
 
     fun getYoutubeLinks(): List<VideoInfo>
+
+    fun setPersistLinks(persist: Boolean)
+
+
 }
 
-object JsonYouTubeManagerObject : YouTubeManagerInterface {
+class JsonYouTubeManagerObjectClass private constructor() : YouTubeManagerInterface {
+
+    companion object {
+        val JsonYouTubeManagerObjectInstance: JsonYouTubeManagerObjectClass = JsonYouTubeManagerObjectClass()
+    }
 
     private val json = Json
     private val youtubeLinks = mutableListOf<VideoInfo>()
+    private var persistLinks: Boolean = true
 
     override fun getYoutubeLinks(): List<VideoInfo> {
         return youtubeLinks
     }
 
     fun loadYouTubeLinks() {
-        val file = java.io.File("youtubeLinks.json")
-        if (file.exists()) {
-            youtubeLinks.clear()
-            val jsonContent = file.readText()
-            youtubeLinks.addAll(json.decodeFromString<List<VideoInfo>>(jsonContent))
+        if (persistLinks) {
+            val file = java.io.File("youtubeLinks.json")
+            if (file.exists()) {
+                youtubeLinks.clear()
+                val jsonContent = file.readText()
+                youtubeLinks.addAll(json.decodeFromString<List<VideoInfo>>(jsonContent))
+            }
         }
     }
 
     fun saveYouTubeLinks() {
-        val file = java.io.File("youtubeLinks.json")
-        val jsonContent = json.encodeToString(youtubeLinks)
-        file.writeText(jsonContent)
+        if (persistLinks) {
+            val file = java.io.File("youtubeLinks.json")
+            val jsonContent = json.encodeToString(youtubeLinks)
+            file.writeText(jsonContent)
+        }
     }
 
     override fun getRandomYouTubeVideoUrl(): String {
@@ -70,6 +83,10 @@ object JsonYouTubeManagerObject : YouTubeManagerInterface {
         val videoId = videoInfo.videoId
 
         return "https://www.youtube.com/embed/$videoId"
+    }
+
+    override fun setPersistLinks(persist: Boolean) {
+        this.persistLinks = persist
     }
 
     override fun addVideo(videoId: String, customName: String) {
@@ -85,15 +102,17 @@ object JsonYouTubeManagerObject : YouTubeManagerInterface {
     }
 }
 
+
 class  InMemoryYouTubeManagerClass private constructor(): YouTubeManagerInterface {
 
     companion object {
-        val  InMemoryYouTubeManagerInstance : InMemoryYouTubeManagerClass  = InMemoryYouTubeManagerClass()
+        val  inMemoryYouTubeManagerInstance : InMemoryYouTubeManagerClass  = InMemoryYouTubeManagerClass()
     }
 
 
         private val json = Json
         private val youtubeLinks = mutableListOf<VideoInfo>()
+        private var persistLinks: Boolean = false
 
         override fun getYoutubeLinks(): List<VideoInfo> {
             return youtubeLinks
@@ -110,6 +129,10 @@ class  InMemoryYouTubeManagerClass private constructor(): YouTubeManagerInterfac
             return "https://www.youtube.com/embed/$videoId"
         }
 
+    override fun setPersistLinks(persist: Boolean) {
+        this.persistLinks = persist
+    }
+
         override fun addVideo(videoId: String, customName: String) {
             youtubeLinks.add(VideoInfo(videoId, customName))
         }
@@ -120,5 +143,6 @@ class  InMemoryYouTubeManagerClass private constructor(): YouTubeManagerInterfac
             }
         }
     }
+
 
 
