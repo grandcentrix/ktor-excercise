@@ -5,7 +5,12 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 
 fun main() {
-    println("Do you want to persist links? (true/false)")
+    println("Do you want to persist links? (yes/no)")
+
+    val persistLinksInput = readLine()
+    val persistLinks = persistLinksInput?.lowercase() == "yes"
+
+    YouTubeManagerConfig.useJsonManager = persistLinks
 
     embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
         .start(wait = true)

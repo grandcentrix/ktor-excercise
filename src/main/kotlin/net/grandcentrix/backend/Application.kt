@@ -8,7 +8,10 @@ fun Application.module() {
 }
 
 fun getYouTubeManager(): YouTubeManagerInterface {
-    JsonYouTubeManagerObjectClass.JsonYouTubeManagerObjectInstance.loadYouTubeLinks()
-    return JsonYouTubeManagerObjectClass.JsonYouTubeManagerObjectInstance
-
+    return if (YouTubeManagerConfig.useJsonManager) {
+        JsonYouTubeManagerObjectClass.JsonYouTubeManagerObjectInstance.loadYouTubeLinks()
+        JsonYouTubeManagerObjectClass.JsonYouTubeManagerObjectInstance
+    } else {
+        InMemoryYouTubeManagerClass.inMemoryYouTubeManagerInstance
+    }
 }
