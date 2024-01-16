@@ -38,17 +38,15 @@ interface YouTubeManagerInterface {
 
 }
 
-object YouTubeManagerConfig {
-    var useJsonManager: Boolean = true
-}
 
-class JsonYouTubeManagerObjectClass private constructor(private val persistLinks: Boolean) : YouTubeManagerInterface {
+
+class JsonYouTubeManagerObjectClass private constructor() : YouTubeManagerInterface {
 
 
 
 
     companion object {
-        val JsonYouTubeManagerObjectInstance: JsonYouTubeManagerObjectClass = JsonYouTubeManagerObjectClass(YouTubeManagerConfig.useJsonManager)
+        val JsonYouTubeManagerObjectInstance: JsonYouTubeManagerObjectClass = JsonYouTubeManagerObjectClass()
     }
 
     private val json = Json
@@ -103,10 +101,10 @@ class JsonYouTubeManagerObjectClass private constructor(private val persistLinks
 }
 
 
-class  InMemoryYouTubeManagerClass private constructor(private val persistLinks: Boolean): YouTubeManagerInterface {
+class  InMemoryYouTubeManagerClass private constructor(): YouTubeManagerInterface {
 
     companion object {
-        val  inMemoryYouTubeManagerInstance : InMemoryYouTubeManagerClass  = InMemoryYouTubeManagerClass(YouTubeManagerConfig.useJsonManager)
+        val  inMemoryYouTubeManagerInstance : InMemoryYouTubeManagerClass  = InMemoryYouTubeManagerClass()
     }
 
 
