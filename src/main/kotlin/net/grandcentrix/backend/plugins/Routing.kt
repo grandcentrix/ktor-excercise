@@ -9,11 +9,11 @@ import net.grandcentrix.backend.models.videos
 fun Application.configureRouting() {
     routing {
         get("/") {
-            call.respondRedirect("index")
+            call.respondRedirect("")
         }
-        route("/index") {
+        route("/") {
             get {
-                call.respond(FreeMarkerContent("index.ftl", mapOf("videos" to videos)))
+//                call.respond(FreeMarkerContent("index.ftl", mapOf("videos" to videos)))
             }
         }
     }
