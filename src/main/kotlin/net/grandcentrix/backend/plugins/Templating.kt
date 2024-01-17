@@ -9,7 +9,7 @@ import io.ktor.server.routing.*
 fun Application.configureTemplating() {
     install(FreeMarker) {
         templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
-        outputFormat = HTMLOutputFormat.INSTANCE
+//        outputFormat = HTMLOutputFormat.INSTANCE
     }
 //    routing {
 //        get("/html-freemarker") {
