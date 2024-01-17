@@ -1,4 +1,4 @@
-package localhost.plugins
+package net.grandcentrix.backend.plugins
 
 import freemarker.cache.*
 import io.ktor.server.application.*

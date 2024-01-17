@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="videos" type="kotlin.collections.List<localhost.models.Video>" -->
+<#-- @ftlvariable name="videos" type="kotlin.collections.List<net.grandcentrix.backend.models.Video>" -->
 <!DOCTYPE html>
 <html lang="en">
 <head>Video Shuffle</head>

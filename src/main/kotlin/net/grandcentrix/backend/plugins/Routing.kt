@@ -1,10 +1,10 @@
-package localhost.plugins
+package net.grandcentrix.backend.plugins
 
 import io.ktor.server.application.*
 import io.ktor.server.freemarker.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import localhost.models.videos
+import net.grandcentrix.backend.models.videos
 
 fun Application.configureRouting() {
     routing {

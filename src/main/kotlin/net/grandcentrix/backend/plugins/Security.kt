@@ -1,4 +1,4 @@
-package localhost.plugins
+package net.grandcentrix.backend.plugins
 
 import io.ktor.server.application.*
 

@@ -1,4 +1,4 @@
-package localhost.models
+package net.grandcentrix.backend.models
 
 class Video
 private constructor(val id: String, var title: String) {
