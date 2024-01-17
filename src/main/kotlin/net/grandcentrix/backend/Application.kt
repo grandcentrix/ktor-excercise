@@ -2,8 +2,7 @@ package net.grandcentrix.backend
 
 import io.ktor.server.application.*
 
-fun Application.module() {
-    val persistLinks = readLine()?.toBoolean() ?: false
+fun Application.module(persistLinks: Boolean) {
     val youtubeManager = getYouTubeManager(persistLinks)
     configureRouting(youtubeManager = youtubeManager)
 }
