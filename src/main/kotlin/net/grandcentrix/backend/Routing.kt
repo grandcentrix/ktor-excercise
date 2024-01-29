@@ -1,5 +1,6 @@
 package net.grandcentrix.backend
 
+import YouTubeManagerInterface
 import io.ktor.server.routing.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -11,6 +12,8 @@ import java.net.URL
 
 
 fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
+    val youtubeManager = JsonYouTubeManagerObjectClass.JsonYouTubeManagerObjectInstance
+
     routing {
         get("/") {
             call.respondHtml {
@@ -48,8 +51,6 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                         }
                     }
 
-
-
                     form(action = "/deleteVideoByNumber", method = FormMethod.post) {
                         textInput {
                             name = "videoNumberToDelete"
@@ -59,7 +60,6 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                             value = "Delete"
                         }
                     }
-
 
                     form(action = "/addVideo", method = FormMethod.post) {
                         textInput {
@@ -76,6 +76,16 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                         }
                     }
 
+                    form(action = "/addVideoByNumber", method = FormMethod.post) {
+                        textInput {
+                            name = "videoNumberToAdd"
+                            placeholder = "Enter video number to add"
+                        }
+                        submitInput {
+                            value = "Add Video to Playlist"
+                        }
+                    }
+
                     form(action = "/renameVideoByNumber", method = FormMethod.post) {
                         textInput {
                             name = "videoNumberToRename"
@@ -89,9 +99,21 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                             value = "Rename Video"
                         }
                     }
-
-
                 }
+            }
+        }
+
+        post("/addVideoByNumber") {
+            val parameters = call.receiveParameters()
+            val videoNumberToAdd = parameters["videoNumberToAdd"]?.toIntOrNull()
+
+            if (videoNumberToAdd != null && videoNumberToAdd > 0 && videoNumberToAdd <= youtubeManager.getYoutubeLinks().size) {
+                val indexToAdd = videoNumberToAdd - 1
+                val videoToAdd = youtubeManager.getYoutubeLinks()[indexToAdd]
+                youtubeManager.addVideoToPlaylist(videoToAdd.videoId, videoToAdd.customName, true) // Set addToUserPlaylist to true
+                call.respondRedirect("/")
+            } else {
+                call.respond(HttpStatusCode.BadRequest, "Invalid video number")
             }
         }
 
@@ -108,7 +130,8 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                     val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
 
                     if (!videoId.isNullOrBlank()) {
-                        youtubeManager.addVideo(videoId, customName)
+                        youtubeManager.addVideo(videoId, customName, false) // Set addToUserPlaylist to false
+                        youtubeManager.saveYouTubeLinks() // Save the updated youtubeLinks
                         call.respondRedirect("/")
                     } else {
                         call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Video ID not found")
@@ -120,6 +143,7 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                 call.respond(HttpStatusCode.BadRequest, "URL is required")
             }
         }
+
 
 
         post("/deleteVideoByNumber") {
@@ -151,3 +175,5 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
         }
     }
 }
+
+

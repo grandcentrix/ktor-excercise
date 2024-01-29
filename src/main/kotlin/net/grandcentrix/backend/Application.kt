@@ -1,5 +1,6 @@
 package net.grandcentrix.backend
 
+import YouTubeManagerInterface
 import io.ktor.server.application.*
 
 fun Application.module(persistLinks: Boolean) {
