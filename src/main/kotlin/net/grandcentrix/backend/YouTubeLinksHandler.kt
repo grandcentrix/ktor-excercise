@@ -5,7 +5,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class VideoInfo(val videoId: String, val customName: String)
+data class VideoInfo(val videoId: String, var customName: String)
+
+
 
 /**
  * Interface to describe the functionalities of YouTubeManager.
@@ -36,14 +38,13 @@ interface YouTubeManagerInterface {
 
     fun getYoutubeLinks(): List<VideoInfo>
 
+    fun renameVideo(videoId: String, newCustomName: String): Boolean
+
 }
 
 
 
 class JsonYouTubeManagerObjectClass private constructor() : YouTubeManagerInterface {
-
-
-
 
     companion object {
         val JsonYouTubeManagerObjectInstance: JsonYouTubeManagerObjectClass = JsonYouTubeManagerObjectClass()
@@ -98,6 +99,17 @@ class JsonYouTubeManagerObjectClass private constructor() : YouTubeManagerInterf
             saveYouTubeLinks()
         }
     }
+
+    override fun renameVideo(videoId: String, newCustomName: String): Boolean {
+        val video = youtubeLinks.find { it.videoId == videoId }
+        return if (video != null) {
+            video.customName = newCustomName
+            saveYouTubeLinks()
+            true
+        } else {
+            false
+        }
+    }
 }
 
 
@@ -136,6 +148,16 @@ class  InMemoryYouTubeManagerClass private constructor(): YouTubeManagerInterfac
                 youtubeLinks.removeAt(videoNumber)
             }
         }
+
+    override fun renameVideo(videoId: String, newCustomName: String): Boolean {
+        val video = youtubeLinks.find { it.videoId == videoId }
+        return if (video != null) {
+            video.customName = newCustomName
+            true
+        } else {
+            false
+        }
+    }
     }
 
 

@@ -7,7 +7,6 @@ import java.io.File
 
 class YouTubeManagerTest {
 
-    private val json = Json
     @Test
     fun testJsonYouTubeManager() {
         val youtubeManager = JsonYouTubeManagerObjectClass.JsonYouTubeManagerObjectInstance

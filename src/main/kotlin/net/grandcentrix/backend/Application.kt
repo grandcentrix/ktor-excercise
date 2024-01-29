@@ -5,6 +5,7 @@ import io.ktor.server.application.*
 fun Application.module(persistLinks: Boolean) {
     val youtubeManager = getYouTubeManager(persistLinks)
     configureRouting(youtubeManager = youtubeManager)
+
 }
 
 fun getYouTubeManager(persistLinks: Boolean): YouTubeManagerInterface {

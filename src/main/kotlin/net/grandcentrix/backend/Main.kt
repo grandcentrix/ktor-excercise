@@ -5,7 +5,7 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 
 fun main() {
-    val persistLinks = false
+    val persistLinks = true
 
 
     embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = { module(persistLinks) })

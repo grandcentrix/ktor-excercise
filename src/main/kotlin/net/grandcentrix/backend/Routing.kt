@@ -76,6 +76,20 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                         }
                     }
 
+                    form(action = "/renameVideoByNumber", method = FormMethod.post) {
+                        textInput {
+                            name = "videoNumberToRename"
+                            placeholder = "Enter video number to rename"
+                        }
+                        textInput {
+                            name = "newCustomName"
+                            placeholder = "Enter new custom name"
+                        }
+                        submitInput {
+                            value = "Rename Video"
+                        }
+                    }
+
 
                 }
             }
@@ -118,6 +132,21 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                 call.respondRedirect("/")
             } else {
                 call.respond(HttpStatusCode.BadRequest, "Invalid video number")
+            }
+        }
+
+        post("/renameVideoByNumber") {
+            val parameters = call.receiveParameters()
+            val videoNumberToRename = parameters["videoNumberToRename"]?.toIntOrNull()
+            val newCustomName = parameters["newCustomName"]
+
+            if (videoNumberToRename != null && videoNumberToRename > 0 && videoNumberToRename <= youtubeManager.getYoutubeLinks().size && !newCustomName.isNullOrBlank()) {
+                val indexToRename = videoNumberToRename - 1
+                val videoInfo = youtubeManager.getYoutubeLinks()[indexToRename]
+                videoInfo.customName = newCustomName
+                call.respondRedirect("/")
+            } else {
+                call.respond(HttpStatusCode.BadRequest, "Invalid video number or new custom name")
             }
         }
     }
