@@ -1,0 +1,135 @@
+body {
+    font-family: Open Sans, sans-serif;
+    margin: 0;
+    padding: 0;
+    letter-spacing: 0.3px;
+}
+
+a {
+    color: #8c560d;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: bold;
+    font-family: Open Sans, sans-serif;
+    letter-spacing: 0.3px;
+}
+
+h1 {
+    margin: 0 0 40px 0;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 30px;
+    background-color: bisque;
+    padding: 40px;
+    color: #8c560d;
+}
+
+.container {
+    display: flex;
+    margin: 0 auto;
+    height: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 75%;
+}
+
+.container-left {display: flex;flex-direction: column;width: 100%;}
+
+.container-right {
+    width: 35%;
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+    margin: 0;
+    justify-content: center;
+}
+
+.videos-list {
+    width: 75%;
+    margin: 30px 0;
+    padding: 0;
+}
+
+.videos-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #efc594;
+}
+
+.videos-list li:first-child {
+    border-bottom: 1px solid #efc594;
+}
+
+.videos-list li a {
+    font-size: 18px;
+}
+
+.videos-list li a.button {
+    font-size: 15px;
+}
+
+.videos-list li:hover {
+    background: bisque;
+}
+
+.button {
+    border: 1px solid #efc594;
+    border-radius: 15px;
+    padding: 5px 10px;
+    text-transform: uppercase;
+}
+
+.button:hover {
+    background-color: #efc594;
+}
+
+.shuffle {
+    background-color: #67a5bd;
+    color: white;
+    font-size: 20px;
+    text-decoration: none;
+    border: none;
+    text-transform: uppercase;
+    border-radius: 0;
+    padding: 15px;
+    margin-top: 30px;
+    text-align: center;
+}
+
+.shuffle:hover {
+    background-color: #598ea2;
+    border: none;
+}
+
+section.new-video {
+    display: flex;
+    flex-direction: column;
+    width: 75%;
+}
+
+h2 {
+    color: #3a5345;
+    font-size: 20px;
+    text-transform: uppercase;
+    background: #bfe1cd;
+    padding: 15px;
+}
+
+form input[type="text"], form input[type="submit"] {
+    width: 93.6%;
+    padding: 10px;
+    border: 1px solid #efc594;
+}
+
+form input[type="submit"] {
+    width: 100%;
+    letter-spacing: 0.3px;
+    color: #8c560d;
+    font-weight: bold;
+    font-size: 15px;
+    text-transform: none;
+    background-color: bisque;
+}
