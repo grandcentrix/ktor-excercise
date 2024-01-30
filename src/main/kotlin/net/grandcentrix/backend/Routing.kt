@@ -12,10 +12,11 @@ import java.net.URL
 
 
 fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
-    val youtubeManager = JsonYouTubeManagerObjectClass.JsonYouTubeManagerObjectInstance
-
     routing {
         get("/") {
+            val randomVideoUrl = youtubeManager.getRandomYouTubeVideoUrl()
+            val playlist = youtubeManager.getUserPlaylist()
+
             call.respondHtml {
                 head {
                     title { +"Ktor Test" }
@@ -25,7 +26,7 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                     iframe {
                         width = "560"
                         height = "315"
-                        src = youtubeManager.getRandomYouTubeVideoUrl()
+                        src = randomVideoUrl
                         attributes["allowfullscreen"] = ""
                     }
                     button {
@@ -33,23 +34,18 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                         +"Click me for a different random MV!"
                     }
 
-                    h2 { +"Link to each MV" }
-                    ul {
-                        youtubeManager.getYoutubeLinks().forEachIndexed { index, videoInfo ->
-                            li {
-                                val videoNumber = index + 1
-                                val videoUrl = "https://www.youtube.com/watch?v=${videoInfo.videoId}"
-                                +"$videoNumber. "
-                                a(href = videoUrl, target = "_blank") { +if (videoInfo.customName.isNotEmpty()) videoInfo.customName else videoUrl }
-                                form(action = "/deleteVideo", method = FormMethod.post) {
-                                    hiddenInput {
-                                        name = "videoToDelete"
-                                        value = videoInfo.videoId
-                                    }
-                                }
-                            }
+                    h2 { +"Playlist" }
+                    playlist.forEach { videoInfo ->
+                        iframe {
+                            width = "560"
+                            height = "315"
+                            src = "https://www.youtube.com/embed/${videoInfo.videoId}"
+                            attributes["allowfullscreen"] = ""
                         }
+                        br {}
                     }
+
+
 
                     form(action = "/deleteVideoByNumber", method = FormMethod.post) {
                         textInput {

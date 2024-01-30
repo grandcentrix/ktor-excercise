@@ -11,7 +11,10 @@ interface YouTubeManagerInterface {
     fun getYoutubeLinks(): List<VideoInfo>
     fun renameVideo(videoId: String, newCustomName: String): Boolean
     fun addVideoToPlaylist(videoId: String, customName: String, addToUserPlaylist: Boolean)
+    fun saveYouTubeLinks()
+
     fun getUserPlaylist(): List<VideoInfo>
+
 }
 
 @Serializable
@@ -29,6 +32,14 @@ class JsonYouTubeManagerObjectClass private constructor() : YouTubeManagerInterf
     init {
         loadYouTubeLinks()
         loadUserPlaylist()
+    }
+
+    private fun clearJsonFiles() {
+        val youtubeLinksFile = File("youtubeLinks.json")
+        val userPlaylistFile = File("userPlaylist.json")
+
+        youtubeLinksFile.writeText("[]") // Clear the content of youtubeLinks.json
+        userPlaylistFile.writeText("[]") // Clear the content of userPlaylist.json
     }
 
     override fun getYoutubeLinks(): List<VideoInfo> {
@@ -81,7 +92,7 @@ class JsonYouTubeManagerObjectClass private constructor() : YouTubeManagerInterf
         }
     }
 
-    override fun getUserPlaylist(): List<VideoInfo> {
+     override fun getUserPlaylist(): List<VideoInfo> {
         return userPlaylist
     }
 
@@ -103,7 +114,7 @@ class JsonYouTubeManagerObjectClass private constructor() : YouTubeManagerInterf
         }
     }
 
-     fun saveYouTubeLinks() {
+    override fun saveYouTubeLinks() {
         val file = File("youtubeLinks.json")
         val jsonContent = json.encodeToString(youtubeLinks)
         file.writeText(jsonContent)
@@ -123,6 +134,11 @@ class InMemoryYouTubeManagerClass private constructor(): YouTubeManagerInterface
 
     private val youtubeLinks = mutableListOf<VideoInfo>()
     private val userPlaylist = mutableListOf<VideoInfo>()
+
+    init {
+        youtubeLinks.clear()
+        userPlaylist.clear()
+    }
 
     override fun getYoutubeLinks(): List<VideoInfo> {
         return youtubeLinks
@@ -162,10 +178,16 @@ class InMemoryYouTubeManagerClass private constructor(): YouTubeManagerInterface
     }
 
     override fun addVideoToPlaylist(videoId: String, customName: String, addToUserPlaylist: Boolean) {
-        userPlaylist.add(VideoInfo(videoId, customName))
+        if (addToUserPlaylist) {
+            userPlaylist.add(VideoInfo(videoId, customName))
+        }
     }
 
+    override fun saveYouTubeLinks() {
+        // No operation needed here as we don't want to save anything
+    }
     override fun getUserPlaylist(): List<VideoInfo> {
         return userPlaylist
     }
+
 }
