@@ -10,42 +10,80 @@ import io.ktor.server.html.*
 import kotlinx.html.*
 import java.net.URL
 
-
 fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
+    val userPlaylist = youtubeManager.getUserPlaylist() // Load user playlist data once during application startup
+
     routing {
         get("/") {
-            val randomVideoUrl = youtubeManager.getRandomYouTubeVideoUrl()
-            val playlist = youtubeManager.getUserPlaylist()
-
             call.respondHtml {
                 head {
                     title { +"Ktor Test" }
+                    style {
+                        +" .grid-container { display: grid; grid-template-columns: 1fr 1fr; }"
+                    }
                 }
                 body {
-                    h1 { +"Random MV player" }
-                    iframe {
-                        width = "560"
-                        height = "315"
-                        src = randomVideoUrl
-                        attributes["allowfullscreen"] = ""
-                    }
-                    button {
-                        onClick = "window.location.reload();"
-                        +"Click me for a different random MV!"
-                    }
-
-                    h2 { +"Playlist" }
-                    playlist.forEach { videoInfo ->
-                        iframe {
-                            width = "560"
-                            height = "315"
-                            src = "https://www.youtube.com/embed/${videoInfo.videoId}"
-                            attributes["allowfullscreen"] = ""
+                    div(classes = "grid-container") {
+                        div(classes = "random-video") {
+                            h1 { +"Random MV player" }
+                            iframe {
+                                width = "560"
+                                height = "315"
+                                src = youtubeManager.getRandomYouTubeVideoUrl()
+                                attributes["allowfullscreen"] = ""
+                            }
+                            button {
+                                onClick = "window.location.reload();"
+                                +"Click me for a different random MV!"
+                            }
                         }
-                        br {}
+
+                        div(classes = "playlist") {
+                            h3 { +"Your Playlist" }
+                            form(action = "/playPlaylistVideo", method = FormMethod.post) {
+                                select {
+                                    id = "playlistSelect"
+                                    name = "videoId"
+                                    userPlaylist.forEach { videoInfo ->
+                                        option {
+                                            value = videoInfo.videoId
+                                            +if (videoInfo.customName.isNotEmpty()) videoInfo.customName else videoInfo.videoId
+                                        }
+                                    }
+                                }
+                                submitInput {
+                                    value = "Play Playlist Video"
+                                }
+                            }
+                            // Add the iframe here to display the selected video from the playlist
+                            iframe {
+                                width = "560"
+                                height = "315"
+                                src = "" // Set the initial source to an empty string
+                                id = "playlistVideoFrame"
+                                attributes["allowfullscreen"] = ""
+                            }
+                        }
                     }
 
 
+                    h3 { +"Link to each MV" }
+                    ul {
+                        youtubeManager.getYoutubeLinks().forEachIndexed { index, videoInfo ->
+                            li {
+                                val videoNumber = index + 1
+                                val videoUrl = "https://www.youtube.com/watch?v=${videoInfo.videoId}"
+                                +"$videoNumber. "
+                                a(href = videoUrl, target = "_blank") { +if (videoInfo.customName.isNotEmpty()) videoInfo.customName else videoUrl }
+                                form(action = "/deleteVideo", method = FormMethod.post) {
+                                    hiddenInput {
+                                        name = "videoToDelete"
+                                        value = videoInfo.videoId
+                                    }
+                                }
+                            }
+                        }
+                    }
 
                     form(action = "/deleteVideoByNumber", method = FormMethod.post) {
                         textInput {
@@ -56,6 +94,8 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                             value = "Delete"
                         }
                     }
+
+
 
                     form(action = "/addVideo", method = FormMethod.post) {
                         textInput {
@@ -140,8 +180,6 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
             }
         }
 
-
-
         post("/deleteVideoByNumber") {
             val parameters = call.receiveParameters()
             val videoNumberToDelete = parameters["videoNumberToDelete"]?.toIntOrNull()
@@ -169,7 +207,22 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                 call.respond(HttpStatusCode.BadRequest, "Invalid video number or new custom name")
             }
         }
+            post("/playPlaylistVideo") {
+                val parameters = call.receiveParameters()
+                val videoId = parameters["videoId"]
+
+                if (!videoId.isNullOrBlank()) {
+                    call.respondHtml {
+                        head {
+                            meta {
+                                httpEquiv = "refresh"
+                                content = "0; url=https://www.youtube.com/embed/$videoId"
+                            }
+                        }
+                    }
+                } else {
+                    call.respond(HttpStatusCode.BadRequest, "Invalid video ID")
+                }
+            }
     }
 }
-
-
