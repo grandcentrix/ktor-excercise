@@ -13,6 +13,9 @@ interface YouTubeManagerInterface {
     fun addVideoToPlaylist(videoId: String, customName: String, addToUserPlaylist: Boolean)
     fun saveYouTubeLinks()
 
+
+    fun removeVideo(videoId: String): Boolean
+
     fun getUserPlaylist(): List<VideoInfo>
 
 }
@@ -73,6 +76,18 @@ class JsonYouTubeManagerObjectClass private constructor() : YouTubeManagerInterf
             saveYouTubeLinks()
         }
     }
+
+    override fun removeVideo(videoId: String): Boolean {
+        val video = userPlaylist.find { it.videoId == videoId }
+        return if (video != null) {
+            userPlaylist.remove(video)
+            saveUserPlaylist()
+            true
+        } else {
+            false
+        }
+    }
+
 
     override fun renameVideo(videoId: String, newCustomName: String): Boolean {
         val video = youtubeLinks.find { it.videoId == videoId }
@@ -186,6 +201,17 @@ class InMemoryYouTubeManagerClass private constructor(): YouTubeManagerInterface
     override fun saveYouTubeLinks() {
         // No operation needed here as we don't want to save anything
     }
+
+    override fun removeVideo(videoId: String): Boolean {
+        val video = userPlaylist.find { it.videoId == videoId }
+        return if (video != null) {
+            userPlaylist.remove(video)
+            true
+        } else {
+            false
+        }
+    }
+
     override fun getUserPlaylist(): List<VideoInfo> {
         return userPlaylist
     }

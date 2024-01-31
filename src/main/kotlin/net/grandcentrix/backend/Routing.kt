@@ -1,5 +1,6 @@
 package net.grandcentrix.backend
 
+import VideoInfo
 import YouTubeManagerInterface
 import io.ktor.server.routing.*
 import io.ktor.server.request.*
@@ -12,6 +13,7 @@ import java.net.URL
 
 fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
     val userPlaylist = youtubeManager.getUserPlaylist() // Load user playlist data once during application startup
+    val playlists = mutableMapOf<String, List<VideoInfo>>()
 
     routing {
         get("/") {
@@ -19,7 +21,7 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                 head {
                     title { +"Ktor Test" }
                     style {
-                        +" .grid-container { display: grid; grid-template-columns: 1fr 1fr; }"
+                        +" .grid-container { display: grid; grid-template-columns: 2fr 1fr; }"
                     }
                 }
                 body {
@@ -55,17 +57,25 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                                     value = "Play Playlist Video"
                                 }
                             }
-                            // Add the iframe here to display the selected video from the playlist
-                            iframe {
-                                width = "560"
-                                height = "315"
-                                src = "" // Set the initial source to an empty string
-                                id = "playlistVideoFrame"
-                                attributes["allowfullscreen"] = ""
+
+                            // "Remove Selected Video" form placed under "Your Playlist"
+                            form(action = "/removeVideo", method = FormMethod.post) {
+                                select {
+                                    id = "playlistSelectToRemove"
+                                    name = "videoIdToRemove"
+                                    userPlaylist.forEach { videoInfo ->
+                                        option {
+                                            value = videoInfo.videoId
+                                            +if (videoInfo.customName.isNotEmpty()) videoInfo.customName else videoInfo.videoId
+                                        }
+                                    }
+                                }
+                                submitInput {
+                                    value = "Remove Selected Video"
+                                }
                             }
                         }
                     }
-
 
                     h3 { +"Link to each MV" }
                     ul {
@@ -84,6 +94,8 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                             }
                         }
                     }
+
+
 
                     form(action = "/deleteVideoByNumber", method = FormMethod.post) {
                         textInput {
@@ -207,22 +219,37 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                 call.respond(HttpStatusCode.BadRequest, "Invalid video number or new custom name")
             }
         }
-            post("/playPlaylistVideo") {
-                val parameters = call.receiveParameters()
-                val videoId = parameters["videoId"]
+        post("/playPlaylistVideo") {
+            val parameters = call.receiveParameters()
+            val videoId = parameters["videoId"]
 
-                if (!videoId.isNullOrBlank()) {
-                    call.respondHtml {
-                        head {
-                            meta {
-                                httpEquiv = "refresh"
-                                content = "0; url=https://www.youtube.com/embed/$videoId"
-                            }
+            if (!videoId.isNullOrBlank()) {
+                call.respondHtml {
+                    head {
+                        meta {
+                            httpEquiv = "refresh"
+                            content = "0; url=https://www.youtube.com/embed/$videoId"
                         }
                     }
-                } else {
-                    call.respond(HttpStatusCode.BadRequest, "Invalid video ID")
                 }
+            } else {
+                call.respond(HttpStatusCode.BadRequest, "Invalid video ID")
             }
+        }
+        post("/removeVideo") {
+            val parameters = call.receiveParameters()
+            val videoIdToRemove = parameters["videoIdToRemove"]
+
+            if (!videoIdToRemove.isNullOrBlank()) {
+                if (youtubeManager.removeVideo(videoIdToRemove)) {
+                    call.respondRedirect("/")
+                } else {
+                    call.respond(HttpStatusCode.BadRequest, "Video not found in the playlist")
+                }
+            } else {
+                call.respond(HttpStatusCode.BadRequest, "Invalid video ID")
+            }
+        }
+
     }
 }
