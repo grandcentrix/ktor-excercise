@@ -15,6 +15,7 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
     val userPlaylist = youtubeManager.getUserPlaylist() // Load user playlist data once during application startup
     val playlists = mutableMapOf<String, List<VideoInfo>>()
 
+
     routing {
         get("/") {
             call.respondHtml {
@@ -22,6 +23,11 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                     title { +"Ktor Test" }
                     style {
                         +" .grid-container { display: grid; grid-template-columns: 2fr 1fr; }"
+                        +"body { background-color: black; color: darkgray; }"
+                        +"button { background-color: gray; color: white; }"
+                        +"input { background-color: darkgray; color: white; }"
+                        +"select { background-color: darkgray; color: white; }"
+                        +"a { color: darkgrey; }"
                     }
                 }
                 body {
@@ -41,6 +47,7 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                         }
 
                         div(classes = "playlist") {
+                            // Content for the right column
                             h3 { +"Your Playlist" }
                             form(action = "/playPlaylistVideo", method = FormMethod.post) {
                                 select {
@@ -57,6 +64,17 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                                     value = "Play Playlist Video"
                                 }
                             }
+                            iframe {
+                                id = "playlistVideoPlayer"
+                                width = "560"
+                                height = "315"
+                                src = "/userPlaylistPage"
+                                attributes["allowfullscreen"] = ""
+                            }
+
+
+
+
 
                             // "Remove Selected Video" form placed under "Your Playlist"
                             form(action = "/removeVideo", method = FormMethod.post) {
@@ -250,6 +268,21 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface) {
                 call.respond(HttpStatusCode.BadRequest, "Invalid video ID")
             }
         }
+        get("/userPlaylistPage") {
+            val userPlaylist = youtubeManager.getUserPlaylist()
 
+            val playlistHtml = buildString {
+                userPlaylist.forEach { videoInfo ->
+                    append("<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/${videoInfo.videoId}\" frameborder=\"0\" allowfullscreen></iframe>")
+                }
+            }
+            call.respondHtml {
+                body {
+                    unsafe {
+                        raw(playlistHtml)
+                    }
+                }
+            }
+        }
     }
 }

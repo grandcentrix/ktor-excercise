@@ -12,10 +12,7 @@ interface YouTubeManagerInterface {
     fun renameVideo(videoId: String, newCustomName: String): Boolean
     fun addVideoToPlaylist(videoId: String, customName: String, addToUserPlaylist: Boolean)
     fun saveYouTubeLinks()
-
-
     fun removeVideo(videoId: String): Boolean
-
     fun getUserPlaylist(): List<VideoInfo>
 
 }
