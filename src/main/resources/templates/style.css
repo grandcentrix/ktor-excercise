@@ -30,24 +30,24 @@ h1 {
     height: 100%;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-    width: 75%;
+    justify-content: center;
+    width: 100%;
 }
 
-.container-left {display: flex;flex-direction: column;width: 100%;}
+.container-left {display: flex;flex-direction: column;width: 60%;}
 
 .container-right {
-    width: 35%;
+    width: 25%;
     display: flex;
     flex-direction: column;
-    align-items: end;
     margin: 0;
+    padding: 0 40px;
     justify-content: center;
 }
 
 .videos-list {
-    width: 75%;
-    margin: 30px 0;
+    width: 100%;
+    /* margin: 30px 0; */
     padding: 0;
 }
 
@@ -57,10 +57,13 @@ h1 {
     align-items: center;
     padding: 15px;
     border: 1px solid #efc594;
+    flex-wrap: wrap;
+    margin-top: 10px;
 }
 
 .videos-list li:first-child {
     border-bottom: 1px solid #efc594;
+    margin-top: 0;
 }
 
 .videos-list li a {
@@ -68,11 +71,20 @@ h1 {
 }
 
 .videos-list li a.button {
-    font-size: 15px;
+    font-size: 13px;
 }
 
 .videos-list li:hover {
     background: bisque;
+}
+
+.videos-list li a.button-type {
+    font-size: 10px;
+    background-color: #df889b;
+    color: #fff;
+    padding: 5px;
+    margin: 0 5px;
+    border-radius: 5px;
 }
 
 .button {
@@ -107,21 +119,27 @@ h1 {
 section.new-video {
     display: flex;
     flex-direction: column;
-    width: 75%;
+    width: 100%;
+    align-items: flex-end;
+    margin-top: 1em;
 }
 
 h2 {
     color: #3a5345;
-    font-size: 20px;
+    font-size: 16px;
     text-transform: uppercase;
     background: #bfe1cd;
     padding: 15px;
+    /* display: inline-block; */
+    align-self: flex-start;
 }
 
 form input[type="text"], form input[type="submit"] {
     width: 93.6%;
     padding: 10px;
     border: 1px solid #efc594;
+    margin-bottom: 10px;
+    font-family: Open Sans, sans-serif;
 }
 
 form input[type="submit"] {
@@ -132,4 +150,20 @@ form input[type="submit"] {
     font-size: 15px;
     text-transform: none;
     background-color: bisque;
+}
+
+form {
+    width: 100%;
+    margin: 1em 0;
+}
+
+label {
+    font-size: 13px;
+    color: #8c560e;
+    font-weight: bold;
+}
+
+select {
+    border: 1px solid #efc595;
+    padding: 5px;
 }
