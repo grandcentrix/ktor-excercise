@@ -10,7 +10,7 @@ open class StorageManagerFile() : StorageManagerInterface {
         val StorageManagerFileInstance: StorageManagerFile = StorageManagerFile()
     }
 
-    private fun getFile(): File {
+     fun getFile(): File {
         val fileName = "src/main/resources/videosList.json"
         val file = File(fileName)
         return file

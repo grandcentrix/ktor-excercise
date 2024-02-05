@@ -4,4 +4,6 @@ data class MusicVideo(override val id: String, override var title: String, overr
     companion object{
         var musicVideos = mutableListOf<Video>()
     }
+
+    // get videos from videos list when app start
 }

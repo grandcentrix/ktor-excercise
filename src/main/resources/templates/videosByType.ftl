@@ -32,10 +32,8 @@
 
                     <p>
                         <label for="videoTypes">Choose a type:</label>
-                        <select name="videoTypes" id="videoTypes">
-                            <#list videoType as type>
-                                <option name="type" value="${type}">${type}</option>
-                            </#list>
+                        <select name="videoType" id="videoType">
+                            <option name="type" value="${videoType}">${videoType}</option>
                         </select>
                     </p>
 

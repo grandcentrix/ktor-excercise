@@ -12,6 +12,7 @@ open class VideoManager(storage: StorageManagerInterface) : VideoManagerInterfac
         var link = String()
         var actionTitle = "Add a new video:"
         var buttonAction = "/add-video"
+        var youtubeUrls = listOf("https://www.youtube.com/watch?v=", "https://youtube.com/watch?v=", "youtube.com/watch?v=", "www.youtube.com/watch?v=")
     }
 
     private var videos = storage.listVideos()
@@ -22,9 +23,37 @@ open class VideoManager(storage: StorageManagerInterface) : VideoManagerInterfac
         return videos
     }
 
+    override fun getVideosByType(videoType: String): MutableList<Video> {
+        val assignedType = VideoType.assignType(videoType)
+        return when (assignedType) {
+            VideoType.MUSIC -> musicVideos
+            VideoType.NEWS -> newsVideos
+    //            VideoType.DOC -> return musicVideos
+    //            VideoType.EDU -> return musicVideos
+    //            VideoType.GAME -> return musicVideos
+    //            VideoType.LIVE -> return musicVideos
+            else -> mutableListOf()
+        }
+    }
+
     override fun findVideo(id: String): Video? {
         val video = videos.find { it.id == id }
         return video
+    }
+
+    fun getVideoData(formParameters: Parameters) {
+        val id = formParameters.getOrFail("link").substringAfter("v=").substringBefore("&")
+        val link = formParameters.getOrFail("link")
+        val title = formParameters.getOrFail("title")
+        val videoType = formParameters.getOrFail("videoTypes")
+
+        if (id.isBlank() || title.isBlank()) {
+            status = "Video link and title cannot be blank or video link is not supported!"
+        } else if (!(link.startsWith(youtubeUrls.get(0)) || link.startsWith(youtubeUrls.get(1)) || link.startsWith(youtubeUrls.get(2)) || link.startsWith(youtubeUrls.get(3)))) {
+            status = "Video link is not supported!"
+        } else {
+            addVideo(id, title, link, videoType)
+        }
     }
 
     override fun addVideo(id: String, title: String, link: String, videoType: String) {
@@ -64,33 +93,6 @@ open class VideoManager(storage: StorageManagerInterface) : VideoManagerInterfac
         }
     }
 
-    override fun updateVideo(id: String, newTitle: String, newType: VideoType) {
-        val video = findVideo(id)
-        if (video != null) {
-            video.title = newTitle
-            video.videoType = newType
-            status = "Video updated!"
-            storeIn.updateStorage(videos)
-        } else {
-            status = "Video not found!"
-        }
-    }
-
-    fun getVideoData(formParameters: Parameters) {
-        val id = formParameters.getOrFail("link").substringAfter("v=").substringBefore("&")
-        val link = formParameters.getOrFail("link")
-        val title = formParameters.getOrFail("title")
-        val videoType = formParameters.getOrFail("videoTypes")
-
-        if (id.isBlank() || title.isBlank()) {
-            status = "Video link and title cannot be blank or video link is not supported!"
-        } else if (!(link.startsWith("https://www.youtube.com/watch?v=") || link.startsWith("https://youtube.com/watch?v=") || link.startsWith("youtube.com/watch?v=") || link.startsWith("www.youtube.com/watch?v="))) {
-            status = "Video link is not supported!"
-        } else {
-            addVideo(id, title, link, videoType)
-        }
-    }
-
     fun getUpdatedData(id: String, formParameters: Parameters) {
         val newTitle = formParameters.getOrFail("title")
         val newType = formParameters.getOrFail("videoTypes")
@@ -103,6 +105,18 @@ open class VideoManager(storage: StorageManagerInterface) : VideoManagerInterfac
             actionTitle = "Add a new video:"
             buttonAction = "/add-video"
 
+        }
+    }
+
+    override fun updateVideo(id: String, newTitle: String, newType: VideoType) {
+        val video = findVideo(id)
+        if (video != null) {
+            video.title = newTitle
+            video.videoType = newType
+            status = "Video updated!"
+            storeIn.updateStorage(videos)
+        } else {
+            status = "Video not found!"
         }
     }
 

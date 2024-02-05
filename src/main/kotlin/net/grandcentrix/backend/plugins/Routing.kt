@@ -55,6 +55,22 @@ fun Application.configureRouting(videoManager: VideoManager) {
                 call.respondRedirect("/")
             }
 
+            get("/{videoType}/videos") {
+                val videoType = call.parameters.getOrFail<String>("videoType")
+                val videos = videoManager.getVideosByType(videoType)
+                call.respond(FreeMarkerContent("videosByType.ftl",
+                    mapOf(
+                        "videos" to videos,
+                        "randomId" to videoManager.shuffle(),
+                        "status" to videoManager.status,
+                        "actionTitle" to actionTitle,
+                        "buttonAction" to buttonAction,
+                        "link" to link,
+                        "videoType" to videoType
+                    )
+                ))
+            }
+
             get("/shuffle") {
                 call.respondRedirect("/")
             }

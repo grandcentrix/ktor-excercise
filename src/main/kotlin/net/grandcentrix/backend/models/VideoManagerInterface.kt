@@ -4,6 +4,7 @@ interface VideoManagerInterface {
     val storeIn: StorageManagerInterface
     var status: String
     fun getVideos(): MutableList<Video>
+    fun getVideosByType(videoType: String): MutableList<Video>
     fun findVideo(id: String): Video?
     fun addVideo(id: String, title: String, link: String, videoType: String)
     fun deleteVideo(id: String)
