@@ -18,6 +18,7 @@ fun main() {
         if (videosJson.isNotEmpty()) {
             StorageManagerMemoryInstance.updateStorage(videosJson)
             VideoManagerInstance.storeIn = StorageManagerFileInstance
+            VideoManagerInstance.loadVideosToType(videosJson)
         }
     }
 

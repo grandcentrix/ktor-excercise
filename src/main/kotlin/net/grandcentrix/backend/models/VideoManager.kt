@@ -16,6 +16,7 @@ open class VideoManager(storage: StorageManagerInterface) : VideoManagerInterfac
     }
 
     private var videos = storage.listVideos()
+
     override var storeIn = storage
     override var status = String()
 
@@ -23,15 +24,20 @@ open class VideoManager(storage: StorageManagerInterface) : VideoManagerInterfac
         return videos
     }
 
+    override fun loadVideosToType(videos: MutableList<Video>) {
+        musicVideos = videos.filter { it.videoType == VideoType.MUSIC }.toMutableList()
+        newsVideos = videos.filter { it.videoType == VideoType.NEWS }.toMutableList()
+    }
+
     override fun getVideosByType(videoType: String): MutableList<Video> {
         val assignedType = VideoType.assignType(videoType)
         return when (assignedType) {
             VideoType.MUSIC -> musicVideos
             VideoType.NEWS -> newsVideos
-    //            VideoType.DOC -> return musicVideos
-    //            VideoType.EDU -> return musicVideos
-    //            VideoType.GAME -> return musicVideos
-    //            VideoType.LIVE -> return musicVideos
+    //            VideoType.DOC -> return docVideos
+    //            VideoType.EDU -> return eduVideos
+    //            VideoType.GAME -> return gameVideos
+    //            VideoType.LIVE -> return liveVideos
             else -> mutableListOf()
         }
     }
@@ -41,7 +47,7 @@ open class VideoManager(storage: StorageManagerInterface) : VideoManagerInterfac
         return video
     }
 
-    fun getVideoData(formParameters: Parameters) {
+    override fun getVideoData(formParameters: Parameters) {
         val id = formParameters.getOrFail("link").substringAfter("v=").substringBefore("&")
         val link = formParameters.getOrFail("link")
         val title = formParameters.getOrFail("title")
@@ -93,7 +99,7 @@ open class VideoManager(storage: StorageManagerInterface) : VideoManagerInterfac
         }
     }
 
-    fun getUpdatedData(id: String, formParameters: Parameters) {
+    override fun getUpdatedData(id: String, formParameters: Parameters) {
         val newTitle = formParameters.getOrFail("title")
         val newType = formParameters.getOrFail("videoTypes")
         val videoType = VideoType.assignType(newType)
@@ -133,6 +139,29 @@ open class VideoManager(storage: StorageManagerInterface) : VideoManagerInterfac
             val id = video.id
             idArray.add(id)
         }
+        val randomId = idArray.random()
+        return randomId
+    }
+
+    override fun shuffleByType(videoType: String): String {
+        val assignedType = VideoType.assignType(videoType)
+        val idArray = mutableListOf<String>()
+
+        val videosList = when (assignedType) {
+            VideoType.MUSIC -> musicVideos
+            VideoType.NEWS -> newsVideos
+    //            VideoType.DOC -> videosList = docVideos
+    //            VideoType.EDU -> videosList = eduVideos
+    //            VideoType.GAME -> videosList = gameVideos
+    //            VideoType.LIVE -> videosList = liveVideos
+            else -> videos
+        }
+
+        for (video in videosList) {
+            val id = video.id
+            idArray.add(id)
+        }
+
         val randomId = idArray.random()
         return randomId
     }

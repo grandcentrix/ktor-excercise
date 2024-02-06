@@ -16,18 +16,32 @@ class StorageManagerTest {
     }
 
     @Test
-    fun testListVideos() {
-        assertIs<MutableList<Video>>(StorageManagerMemoryInstance.listVideos())
+    fun testListVideosMemory() {
         assertNotNull(StorageManagerMemoryInstance.listVideos())
+    }
 
-        assertIs<MutableList<Video>>(StorageManagerFileInstance.listVideos())
+    @Test
+    fun testReturnTypeListVideosMemory() {
+        assertIs<MutableList<Video>>(StorageManagerMemoryInstance.listVideos())
+    }
+
+    @Test
+    fun testListVideosFile() {
         assertNotNull(StorageManagerFileInstance.listVideos())
+    }
+
+    @Test
+    fun testReturnTypeListVideosFile() {
+        assertIs<MutableList<Video>>(StorageManagerFileInstance.listVideos())
     }
 
     @Test
     fun testGetFile() {
         assertNotNull(StorageManagerFileInstance.getFile())
-        assertIs<File>(StorageManagerFileInstance.getFile())
     }
 
+    @Test
+    fun testReturnTypeGetFile() {
+        assertIs<File>(StorageManagerFileInstance.getFile())
+    }
 }

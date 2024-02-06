@@ -14,6 +14,8 @@ import net.grandcentrix.backend.models.VideoManager.Companion.link
 import net.grandcentrix.backend.models.VideoType
 
 fun Application.configureRouting(videoManager: VideoManager) {
+    var path = "/"
+
     routing {
         route("/") {
             get {
@@ -58,10 +60,11 @@ fun Application.configureRouting(videoManager: VideoManager) {
             get("/{videoType}/videos") {
                 val videoType = call.parameters.getOrFail<String>("videoType")
                 val videos = videoManager.getVideosByType(videoType)
+                path = call.request.path()
                 call.respond(FreeMarkerContent("videosByType.ftl",
                     mapOf(
                         "videos" to videos,
-                        "randomId" to videoManager.shuffle(),
+                        "randomId" to videoManager.shuffleByType(videoType),
                         "status" to videoManager.status,
                         "actionTitle" to actionTitle,
                         "buttonAction" to buttonAction,
@@ -71,12 +74,33 @@ fun Application.configureRouting(videoManager: VideoManager) {
                 ))
             }
 
+            get("/cancel") {
+                actionTitle = "Add a new video:"
+                buttonAction = "/add-video"
+                call.respondRedirect(path)
+            }
+
             get("/shuffle") {
-                call.respondRedirect("/")
+                call.respondRedirect(path)
             }
 
             get("/style.css") {
                 call.respond(FreeMarkerContent("style.css", null, contentType = ContentType.Text.CSS))
+            }
+        }
+
+        route("/{videoType}/{id}") {
+            get("/update") {
+                val id = call.parameters.getOrFail<String>("id")
+                videoManager.updateForm(id)
+                call.respondRedirect(path)
+            }
+
+            post("/update") {
+                val id = call.parameters.getOrFail<String>("id")
+                val formParameters = call.receiveParameters()
+                videoManager.getUpdatedData(id, formParameters)
+                call.respondRedirect(path)
             }
         }
     }

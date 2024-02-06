@@ -23,9 +23,8 @@
                         <label>
                             ${link}
                         </label>
+
                     </#if>
-
-
                     <label>
                         <input placeholder="Insert video title" type="text" name="title">
                     </label>
@@ -38,10 +37,11 @@
                             </#list>
                         </select>
                     </p>
-
                     <input class="button" type="submit">
-
                 </form>
+                <#if actionTitle == "Update video title:">
+                    <button><a href="/cancel">Cancel</a></button>
+                </#if>
                 <p>${status}</p>
             </section>
 

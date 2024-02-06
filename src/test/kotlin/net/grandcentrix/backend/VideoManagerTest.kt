@@ -8,48 +8,92 @@ import net.grandcentrix.backend.models.StorageManagerMemory
 import net.grandcentrix.backend.models.Video
 import net.grandcentrix.backend.models.VideoManager
 import net.grandcentrix.backend.models.VideoType
-import kotlin.test.Test
-import kotlin.test.assertIs
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
+import kotlin.test.*
 
 class VideoManagerTest() {
 
     companion object {
         val VideoManagerInstance: VideoManager = VideoManager(storage = StorageManagerMemory.StorageManagerMemoryInstance)
-        val videoId = "1YBtzAAChU8"
-        val videoTitle = "Lofi Girl - Christmas"
-        val videoLink = "https://www.youtube.com/watch?v=1YBtzAAChU8&list=PL6NdkXsPL07KN01gH2vucrHCEyyNmVEx4&index=2&pp=iAQB8AUB"
+        const val videoId = "1YBtzAAChU8"
+        const val videoTitle = "Lofi Girl - Christmas"
+        const val videoLink = "https://www.youtube.com/watch?v=1YBtzAAChU8&list=PL6NdkXsPL07KN01gH2vucrHCEyyNmVEx4&index=2&pp=iAQB8AUB"
         val videos = mutableListOf(Video(videoId,videoTitle,videoLink, VideoType.MUSIC))
-        val videoStatus = "Testing!"
+        const val videoStatus = "Testing!"
         var actionTitle = "Add a new video:"
         var buttonAction = "/add-video"
     }
 
     @Test
     fun testGetVideos() {
-        assertIs<MutableList<Video>>(VideoManagerInstance.getVideos())
         assertNotNull(VideoManagerInstance.getVideos())
     }
 
     @Test
+    fun testReturnTypeGetVideos() {
+        assertIs<MutableList<Video>>(VideoManagerInstance.getVideos())
+    }
+
+    @Test
     fun testFindVideo() {
-        assertEquals(null, VideoManagerInstance.findVideo(""))
         assertEquals(videoId, VideoManagerInstance.findVideo(videoId)?.id ?: Video)
     }
 
-    @Test(expected = MissingRequestParameterException::class)
+    @Test
+    fun testNullFindVideos() {
+        assertEquals(null, VideoManagerInstance.findVideo("12345"))
+    }
+
+    @Test
+    fun testFailGetVideoData() {
+        val formParameters = Parameters.build {
+            append("link", videoLink)
+            append("title", "")
+            append("videoTypes", VideoType.MUSIC.name)
+        }
+
+        assertFails("Video link and title cannot be blank or video link is not supported!") { VideoManagerInstance.getVideoData(formParameters) }
+
+    }
+
+    @Test
+    fun testExceptionGetVideoData() {
+        val formParameters = Parameters.build {
+            append("link", videoLink)
+            append("", videoTitle)
+            append("videoTypes", VideoType.MUSIC.name)
+        }
+
+        assertFailsWith(MissingRequestParameterException::class, "Parameter is incorrect") {
+            VideoManagerInstance.getVideoData(
+                formParameters
+            )
+        }
+    }
+
+    @Test
     fun testGetVideoData() {
         val formParameters = Parameters.build {
             append("link", videoLink)
             append("title", videoTitle)
-            append("videoType", VideoType.MUSIC.name)
+            append("videoTypes", VideoType.MUSIC.name)
+        }
+
+        assertIsNot<MissingRequestParameterException>(VideoManagerInstance.getVideoData(formParameters))
+
+    }
+
+    @Test
+    fun testGetVideoDataParameters() {
+        val formParameters = Parameters.build {
+            append("link", videoLink)
+            append("title", videoTitle)
+            append("videoTypes", VideoType.MUSIC.name)
         }
 
         val id = formParameters.getOrFail("link").substringAfter("v=").substringBefore("&")
         val link = formParameters.getOrFail("link")
         val title = formParameters.getOrFail("title")
-        val videoType = formParameters.getOrFail("videoType")
+        val videoType = formParameters.getOrFail("videoTypes")
         val testMissingParameter = formParameters.getOrFail("test")
 
 
@@ -82,32 +126,55 @@ class VideoManagerTest() {
         assertNull(video)
     }
 
-    @Test(expected = MissingRequestParameterException::class)
-    fun testGetUpdatedData() {
+    @Test
+    fun testFailGetUpdatedData() {
         val formParameters = Parameters.build {
-            append("link", videoLink)
-            append("title", "Testing")
-            append("videoType", VideoType.NEWS.name)
+            append("title", "")
+            append("videoTypes", VideoType.NEWS.name)
         }
 
-        val newTitle = formParameters.getOrFail("title")
-        val newType = formParameters.getOrFail("videoType")
-        val testMissingParameter = formParameters.getOrFail("")
+        assertFails("Video title cannot be blank!") {
+            VideoManagerInstance.getUpdatedData(
+                videoId,
+                formParameters)
+        }
+    }
 
-        assertEquals("Testing", newTitle)
-        assertEquals(VideoType.NEWS.name, newType)
-        assertEquals(MissingRequestParameterException::class, testMissingParameter)
+    @Test
+    fun testExceptionGetUpdatedData() {
+        val formParameters = Parameters.build {
+            append("title", "Testing")
+            append("type", VideoType.NEWS.name)
+        }
+
+        assertFailsWith(MissingRequestParameterException::class, "Parameter is incorrect") {
+            VideoManagerInstance.getUpdatedData(
+                videoId,
+                formParameters
+            )
+        }
+    }
+
+    @Test
+    fun testGetUpdatedData() {
+        val formParameters = Parameters.build {
+            append("title", "Testing")
+            append("videoTypes", VideoType.NEWS.name)
+        }
+
+        assertIsNot<MissingRequestParameterException>(VideoManagerInstance.getUpdatedData(videoId,formParameters))
     }
 
     @Test
     fun testUpdateVideo() {
         val newTitle = "Test"
         val newType = VideoType.NEWS.name
-
         val newVideoType = VideoType.assignType(newType)
-        VideoManagerInstance.updateVideo(videoId, newTitle, newVideoType)
-        val updatedVideo = VideoManagerInstance.getVideos().single { it.id == videoId }
         val video = Video(videoId, newTitle, videoLink, newVideoType)
+
+        VideoManagerInstance.updateVideo(videoId, newTitle, newVideoType)
+
+        val updatedVideo = VideoManagerInstance.getVideos().single { it.id == videoId }
 
         assertEquals(video.title, updatedVideo.title)
         assertEquals(video.videoType, updatedVideo.videoType)
