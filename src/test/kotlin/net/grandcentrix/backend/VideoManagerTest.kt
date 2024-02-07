@@ -17,7 +17,9 @@ class VideoManagerTest() {
         const val videoId = "1YBtzAAChU8"
         const val videoTitle = "Lofi Girl - Christmas"
         const val videoLink = "https://www.youtube.com/watch?v=1YBtzAAChU8&list=PL6NdkXsPL07KN01gH2vucrHCEyyNmVEx4&index=2&pp=iAQB8AUB"
-        val videos = mutableListOf(Video(videoId,videoTitle,videoLink, VideoType.MUSIC))
+        val video = Video(videoId,videoTitle,videoLink, VideoType.MUSIC)
+        val videos = mutableListOf(video)
+
         const val videoStatus = "Testing!"
         var actionTitle = "Add a new video:"
         var buttonAction = "/add-video"
@@ -25,12 +27,16 @@ class VideoManagerTest() {
 
     @Test
     fun testGetVideos() {
-        assertNotNull(VideoManagerInstance.getVideos())
-    }
+        val videosList = VideoManagerInstance.getVideos()
+        val other = videosList.find {
+                    it.id == video.id &&
+                    it.title == video.title &&
+                    it.link == video.link &&
+                    it.videoType == video.videoType
+        }?.id
 
-    @Test
-    fun testReturnTypeGetVideos() {
-        assertIs<MutableList<Video>>(VideoManagerInstance.getVideos())
+        assertEquals(video.id, other)
+        assertNotNull(videos)
     }
 
     @Test
@@ -52,7 +58,6 @@ class VideoManagerTest() {
         }
 
         assertFails("Video link and title cannot be blank or video link is not supported!") { VideoManagerInstance.getVideoData(formParameters) }
-
     }
 
     @Test
@@ -79,7 +84,6 @@ class VideoManagerTest() {
         }
 
         assertIsNot<MissingRequestParameterException>(VideoManagerInstance.getVideoData(formParameters))
-
     }
 
     @Test
@@ -96,7 +100,6 @@ class VideoManagerTest() {
         val videoType = formParameters.getOrFail("videoTypes")
         val testMissingParameter = formParameters.getOrFail("test")
 
-
         assertEquals(MissingRequestParameterException::class, testMissingParameter)
 
         assertEquals(videoId, id)
@@ -110,9 +113,10 @@ class VideoManagerTest() {
         val id = "0MiR7bC9B5o"
         val title = "test"
         val link = "https://www.youtube.com/watch?v=0MiR7bC9B5o&list=PL6NdkXsPL07KN01gH2vucrHCEyyNmVEx4&index=4&pp=iAQB8AUB"
-        val videoType = VideoType.MUSIC.name
+        val videoType = VideoType.MUSIC
+        val newVideo = Video(id, title, link, videoType)
 
-        VideoManagerInstance.addVideo(id, title, link, videoType)
+        VideoManagerInstance.addVideo(newVideo)
         val video = VideoManagerInstance.getVideos().find { it.id == id }
 
         assertNotNull(video)

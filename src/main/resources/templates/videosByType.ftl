@@ -32,7 +32,7 @@
 
                     <p>
                         <label for="videoTypes">Choose a type:</label>
-                        <select name="videoType" id="videoType">
+                        <select name="videoTypes" id="videoTypes">
                             <option name="type" value="${videoType}">${videoType}</option>
                         </select>
                     </p>
@@ -41,17 +41,22 @@
 
                 </form>
                 <#if actionTitle == "Update video title:">
-                    <button><a href="/cancel">Cancel</a></button>
+                    <button class="button"><a href="/cancel">Cancel</a></button>
                 </#if>
                 <p>${status}</p>
             </section>
 
-            <h2>Added videos: </h2>
+            <div style="display: inline-flex;justify-content: space-between;align-items: center;">
+                <h2>Added videos: </h2>
+                <h3>
+                    <a href="/">Return to all videos list</a>
+                </h3>
+            </div>
             <ul class="videos-list">
 
                 <#list videos as video>
                     <li>
-                        <span>
+                        <span style="display: flex;align-items: center;">
                             <a href="https://www.youtube.com/watch?v=${video.id}">${video.title}</a>
                             <a class="button-type" href="">${video.videoType}</a>
                         </span>

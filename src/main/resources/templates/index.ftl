@@ -40,7 +40,7 @@
                     <input class="button" type="submit">
                 </form>
                 <#if actionTitle == "Update video title:">
-                    <button><a href="/cancel">Cancel</a></button>
+                    <button class="button"><a href="/cancel">Cancel</a></button>
                 </#if>
                 <p>${status}</p>
             </section>
@@ -50,7 +50,7 @@
 
                 <#list videos as video>
                     <li>
-                        <span>
+                        <span style="display: flex;align-items: center;">
                             <a href="https://www.youtube.com/watch?v=${video.id}">${video.title}</a>
                             <a class="button-type" href="${video.videoType}/videos">${video.videoType}</a>
                         </span>

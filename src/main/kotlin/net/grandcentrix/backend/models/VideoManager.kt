@@ -16,9 +16,12 @@ open class VideoManager(storage: StorageManagerInterface) : VideoManagerInterfac
     }
 
     private var videos = storage.listVideos()
+    private var storeIn = storage
+    private var status = String()
 
-    override var storeIn = storage
-    override var status = String()
+    override fun defineStorage(storageType: StorageManagerInterface) {
+        storeIn = storageType
+    }
 
     override fun getVideos(): MutableList<Video> {
         return videos
@@ -52,27 +55,27 @@ open class VideoManager(storage: StorageManagerInterface) : VideoManagerInterfac
         val link = formParameters.getOrFail("link")
         val title = formParameters.getOrFail("title")
         val videoType = formParameters.getOrFail("videoTypes")
+        val assignedType = VideoType.assignType(videoType)
 
         if (id.isBlank() || title.isBlank()) {
             status = "Video link and title cannot be blank or video link is not supported!"
         } else if (!(link.startsWith(youtubeUrls.get(0)) || link.startsWith(youtubeUrls.get(1)) || link.startsWith(youtubeUrls.get(2)) || link.startsWith(youtubeUrls.get(3)))) {
             status = "Video link is not supported!"
         } else {
-            addVideo(id, title, link, videoType)
+            val video = Video(id, title, link, assignedType)
+            addVideo(video)
         }
+
     }
 
-    override fun addVideo(id: String, title: String, link: String, videoType: String) {
-
-        val assignedType = VideoType.assignType(videoType)
-
-        if (findVideo(id) == null) {
-            if (assignedType == VideoType.MUSIC) {
-                val newVideo = MusicVideo(id, title, link, VideoType.MUSIC)
+    override fun addVideo(video: Video) {
+        if (findVideo(video.id) == null) {
+            if (video.videoType == VideoType.MUSIC) {
+                val newVideo = MusicVideo(video.id, video.title, link, VideoType.MUSIC)
                     musicVideos.add(newVideo)
                     videos = videos.union(musicVideos).toMutableList()
             } else {
-                val newVideo = NewsVideo(id, title, link, VideoType.NEWS)
+                val newVideo = NewsVideo(video.id, video.title, link, VideoType.NEWS)
                     newsVideos.add(newVideo)
                     videos = videos.union(newsVideos).toMutableList()
             }
@@ -110,7 +113,6 @@ open class VideoManager(storage: StorageManagerInterface) : VideoManagerInterfac
             updateVideo(id, newTitle, videoType)
             actionTitle = "Add a new video:"
             buttonAction = "/add-video"
-
         }
     }
 
@@ -164,5 +166,9 @@ open class VideoManager(storage: StorageManagerInterface) : VideoManagerInterfac
 
         val randomId = idArray.random()
         return randomId
+    }
+
+    override fun getStatus(): String {
+        return status
     }
 }

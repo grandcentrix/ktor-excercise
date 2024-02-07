@@ -1,11 +1,10 @@
 package net.grandcentrix.backend
 
+import net.grandcentrix.backend.VideoManagerTest.Companion.video
 import net.grandcentrix.backend.models.StorageManagerFile
 import net.grandcentrix.backend.models.StorageManagerMemory
-import net.grandcentrix.backend.models.Video
 import org.junit.Test
-import java.io.File
-import kotlin.test.assertIs
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 class StorageManagerTest {
@@ -17,31 +16,34 @@ class StorageManagerTest {
 
     @Test
     fun testListVideosMemory() {
-        assertNotNull(StorageManagerMemoryInstance.listVideos())
-    }
+        val videos = StorageManagerMemoryInstance.listVideos()
+        val other = videos.find {
+            it.id == video.id &&
+                    it.title == video.title &&
+                    it.link == video.link &&
+                    it.videoType == video.videoType
+        }?.id
 
-    @Test
-    fun testReturnTypeListVideosMemory() {
-        assertIs<MutableList<Video>>(StorageManagerMemoryInstance.listVideos())
+        assertEquals(video.id, other)
+        assertNotNull(videos)
     }
 
     @Test
     fun testListVideosFile() {
-        assertNotNull(StorageManagerFileInstance.listVideos())
-    }
+        val videos = StorageManagerFileInstance.listVideos()
+        val other = videos.find {
+            it.id == video.id &&
+                    it.title == video.title &&
+                    it.link == video.link &&
+                    it.videoType == video.videoType
+        }?.id
 
-    @Test
-    fun testReturnTypeListVideosFile() {
-        assertIs<MutableList<Video>>(StorageManagerFileInstance.listVideos())
+        assertEquals(video.id, other)
+        assertNotNull(videos)
     }
 
     @Test
     fun testGetFile() {
         assertNotNull(StorageManagerFileInstance.getFile())
-    }
-
-    @Test
-    fun testReturnTypeGetFile() {
-        assertIs<File>(StorageManagerFileInstance.getFile())
     }
 }

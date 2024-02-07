@@ -14,8 +14,6 @@ import net.grandcentrix.backend.models.VideoManager.Companion.link
 import net.grandcentrix.backend.models.VideoType
 
 fun Application.configureRouting(videoManager: VideoManager) {
-    var path = "/"
-
     routing {
         route("/") {
             get {
@@ -23,7 +21,7 @@ fun Application.configureRouting(videoManager: VideoManager) {
                     mapOf(
                         "videos" to videoManager.getVideos(),
                         "randomId" to videoManager.shuffle(),
-                        "status" to videoManager.status,
+                        "status" to videoManager.getStatus(),
                         "actionTitle" to actionTitle,
                         "buttonAction" to buttonAction,
                         "link" to link,
@@ -60,12 +58,11 @@ fun Application.configureRouting(videoManager: VideoManager) {
             get("/{videoType}/videos") {
                 val videoType = call.parameters.getOrFail<String>("videoType")
                 val videos = videoManager.getVideosByType(videoType)
-                path = call.request.path()
                 call.respond(FreeMarkerContent("videosByType.ftl",
                     mapOf(
                         "videos" to videos,
                         "randomId" to videoManager.shuffleByType(videoType),
-                        "status" to videoManager.status,
+                        "status" to videoManager.getStatus(),
                         "actionTitle" to actionTitle,
                         "buttonAction" to buttonAction,
                         "link" to link,
@@ -77,11 +74,11 @@ fun Application.configureRouting(videoManager: VideoManager) {
             get("/cancel") {
                 actionTitle = "Add a new video:"
                 buttonAction = "/add-video"
-                call.respondRedirect(path)
+//                call.respondRedirect(path)
             }
 
             get("/shuffle") {
-                call.respondRedirect(path)
+//                call.respondRedirect(path)
             }
 
             get("/style.css") {
@@ -92,15 +89,18 @@ fun Application.configureRouting(videoManager: VideoManager) {
         route("/{videoType}/{id}") {
             get("/update") {
                 val id = call.parameters.getOrFail<String>("id")
+                val videoType = call.parameters.getOrFail<String>("videoType")
                 videoManager.updateForm(id)
-                call.respondRedirect(path)
+//                get uri from parent
+                call.respondRedirect("/$videoType/videos")
             }
 
-            post("/update") {
+            post("/{id}/update") {
                 val id = call.parameters.getOrFail<String>("id")
+                val videoType = call.parameters.getOrFail<String>("videoType")
                 val formParameters = call.receiveParameters()
                 videoManager.getUpdatedData(id, formParameters)
-                call.respondRedirect(path)
+                call.respondRedirect("/$videoType/videos")
             }
         }
     }
