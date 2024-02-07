@@ -6,6 +6,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import java.io.File
+import java.lang.Thread.sleep
 
 interface YouTubeManagerInterface {
     fun getRandomYouTubeVideoUrl(): String
@@ -56,6 +57,7 @@ class JsonYouTubeManagerObjectClass private constructor(private val playlistMana
         if (playlist != null) {
             playlist.videos.add(VideoInfo(videoId, customName ?: ""))
             playlistManager.savePlaylists()
+            playlistManager.loadPlaylists()
         } else {
             throw IllegalArgumentException("Playlist '$playlistName' not found.")
         }
@@ -78,6 +80,7 @@ class JsonYouTubeManagerObjectClass private constructor(private val playlistMana
         if (playlist != null) {
             playlist.videos.add(VideoInfo(videoId, customName))
             playlistManager.savePlaylists()
+            playlistManager.loadPlaylists()
         } else {
             throw IllegalArgumentException("Playlist '$playlistName' not found.")
         }
@@ -159,6 +162,7 @@ class InMemoryYouTubeManagerClass private constructor(private val playlistManage
         if (playlist != null) {
             playlist.videos.add(VideoInfo(videoId, customName))
             playlistManager.savePlaylists()
+            playlistManager.loadPlaylists()
         } else {
             throw IllegalArgumentException("Playlist '$playlistName' not found.")
         }
@@ -174,6 +178,7 @@ class InMemoryYouTubeManagerClass private constructor(private val playlistManage
         if (playlist != null) {
             playlist.videos.add(VideoInfo(videoId, customName ?: ""))
             playlistManager.savePlaylists()
+            playlistManager.loadPlaylists()
         } else {
             throw IllegalArgumentException("Playlist '$playlistName' not found.")
         }
@@ -209,8 +214,8 @@ class InMemoryYouTubeManagerClass private constructor(private val playlistManage
 data class Playlist(var name: String, val videos: MutableList<VideoInfo>)
 
 class PlaylistManager {
-     val playlists = mutableListOf<Playlist>()
-     var currentPlaylistIndex: Int = -1
+    val playlists = mutableListOf<Playlist>()
+    var currentPlaylistIndex: Int = -1
     private val json = Json
     init {
         loadPlaylists()
@@ -225,6 +230,8 @@ class PlaylistManager {
         // Create a new playlist and add it to the list
         playlists.add(Playlist(name, mutableListOf()))
         savePlaylistToFile(name)
+        sleep(3000)
+        loadPlaylists()
         println("Playlist $name created.")
     }
 
@@ -236,6 +243,7 @@ class PlaylistManager {
         val index = playlists.indexOfFirst { it.name == name }
         if (index != -1) {
             currentPlaylistIndex = index
+            println("Switch to: $name")
         } else {
             throw IllegalArgumentException("Playlist with name '$name' not found.")
         }
@@ -292,5 +300,3 @@ class PlaylistManager {
         }
     }
 }
-
-

@@ -288,21 +288,25 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
         }
         post("/playPlaylistVideo") {
             val parameters = call.receiveParameters()
-            val videoId = parameters["videoId"]
+            val playlistName = parameters["playlistName"]
+            val playlist = playlistManager.getAllPlaylists().find { it.name == playlistName }
 
-            if (!videoId.isNullOrBlank()) {
+            val firstVideoId = playlist?.videos?.firstOrNull()?.videoId
+
+            if (!firstVideoId.isNullOrBlank()) {
                 call.respondHtml {
                     head {
                         meta {
                             httpEquiv = "refresh"
-                            content = "0; url=https://www.youtube.com/embed/$videoId"
+                            content = "0; url=https://www.youtube.com/embed/$firstVideoId"
                         }
                     }
                 }
             } else {
-                call.respond(HttpStatusCode.BadRequest, "Invalid video ID")
+                call.respond(HttpStatusCode.BadRequest, "Playlist not found or no videos in playlist")
             }
         }
+
         post("/removeVideo") {
             val parameters = call.receiveParameters()
             val videoIdToRemove = parameters["videoIdToRemove"]
@@ -318,12 +322,11 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
             }
         }
         get("/userPlaylistPage") {
-            val playlistName = call.parameters["playlistName"]
-            val playlist = playlistManager.getAllPlaylists().find { it.name == playlistName }
+            val currentPlaylist = playlistManager.getCurrentPlaylist()
 
-            if (playlist != null) {
+            if (currentPlaylist != null) {
                 val playlistHtml = buildString {
-                    playlist.videos.forEach { videoInfo ->
+                    currentPlaylist.videos.forEach { videoInfo ->
                         append("<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/${videoInfo.videoId}\" frameborder=\"0\" allowfullscreen></iframe>")
                     }
                 }
@@ -335,9 +338,11 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                     }
                 }
             } else {
-                call.respond(HttpStatusCode.BadRequest, "Playlist not found")
+                call.respond(HttpStatusCode.BadRequest, "No playlist selected")
             }
         }
+
+
 
 
         post("/switchPlaylist") {
@@ -346,6 +351,7 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
             playlistManager.switchPlaylist(playlistName)
             call.respondRedirect("/")
         }
+
 
         post("/createPlaylist") {
             val parameters = call.receiveParameters()
