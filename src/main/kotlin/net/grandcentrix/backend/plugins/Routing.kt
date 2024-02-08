@@ -7,13 +7,14 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.util.*
+import net.grandcentrix.backend.models.FormActionType
+import net.grandcentrix.backend.models.FormActionType.Companion.getFormAction
+import net.grandcentrix.backend.models.FormActionType.Companion.getFormTitle
+import net.grandcentrix.backend.models.FormManager
 import net.grandcentrix.backend.models.VideoManager
-import net.grandcentrix.backend.models.VideoManager.Companion.actionTitle
-import net.grandcentrix.backend.models.VideoManager.Companion.buttonAction
-import net.grandcentrix.backend.models.VideoManager.Companion.link
 import net.grandcentrix.backend.models.VideoType
 
-fun Application.configureRouting(videoManager: VideoManager) {
+fun Application.configureRouting(videoManager: VideoManager, formManager: FormManager) {
     routing {
         route("/") {
             get {
@@ -21,10 +22,9 @@ fun Application.configureRouting(videoManager: VideoManager) {
                     mapOf(
                         "videos" to videoManager.getVideos(),
                         "randomId" to videoManager.shuffle(),
-                        "status" to videoManager.getStatus(),
-                        "actionTitle" to actionTitle,
-                        "buttonAction" to buttonAction,
-                        "link" to link,
+                        "status" to formManager.getStatus(),
+                        "formAction" to formManager.getFormActionType(),
+                        "link" to formManager.getLink(),
                         "videoType" to VideoType.entries.dropLast(1)
                     )
                 ))
@@ -32,7 +32,7 @@ fun Application.configureRouting(videoManager: VideoManager) {
 
             post("/add-video") {
                 val formParameters = call.receiveParameters()
-                videoManager.getVideoData(formParameters)
+                formManager.setVideoParameters(formParameters)
                 call.respondRedirect("/")
             }
 
@@ -44,14 +44,16 @@ fun Application.configureRouting(videoManager: VideoManager) {
 
             get("/{id}/update") {
                 val id = call.parameters.getOrFail<String>("id")
-                videoManager.updateForm(id)
+                val video = videoManager.getVideos().single { it.id == id }
+                formManager.updateFormAction(id, video)
                 call.respondRedirect("/")
             }
 
             post("/{id}/update") {
                 val id = call.parameters.getOrFail<String>("id")
                 val formParameters = call.receiveParameters()
-                videoManager.getUpdatedData(id, formParameters)
+                formManager.setUpdatedVideoParameters(id, formParameters)
+                videoManager.updateVideo()
                 call.respondRedirect("/")
             }
 
@@ -62,18 +64,17 @@ fun Application.configureRouting(videoManager: VideoManager) {
                     mapOf(
                         "videos" to videos,
                         "randomId" to videoManager.shuffleByType(videoType),
-                        "status" to videoManager.getStatus(),
-                        "actionTitle" to actionTitle,
-                        "buttonAction" to buttonAction,
-                        "link" to link,
+                        "status" to formManager.getStatus(),
+                        "formAction" to formManager.getFormActionType(),
+                        "link" to formManager.getLink(),
                         "videoType" to videoType
                     )
                 ))
             }
 
             get("/cancel") {
-                actionTitle = "Add a new video:"
-                buttonAction = "/add-video"
+                formManager.setActionTitle(getFormTitle(FormActionType.ADD))
+                formManager.setFormAction(getFormAction(FormActionType.ADD))
 //                call.respondRedirect(path)
             }
 
@@ -90,7 +91,8 @@ fun Application.configureRouting(videoManager: VideoManager) {
             get("/update") {
                 val id = call.parameters.getOrFail<String>("id")
                 val videoType = call.parameters.getOrFail<String>("videoType")
-                videoManager.updateForm(id)
+                val video = videoManager.getVideos().single { it.id == id }
+                formManager.updateFormAction(id, video)
 //                get uri from parent
                 call.respondRedirect("/$videoType/videos")
             }
@@ -99,7 +101,7 @@ fun Application.configureRouting(videoManager: VideoManager) {
                 val id = call.parameters.getOrFail<String>("id")
                 val videoType = call.parameters.getOrFail<String>("videoType")
                 val formParameters = call.receiveParameters()
-                videoManager.getUpdatedData(id, formParameters)
+                formManager.setUpdatedVideoParameters(id, formParameters)
                 call.respondRedirect("/$videoType/videos")
             }
         }

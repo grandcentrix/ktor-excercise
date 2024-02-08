@@ -1,26 +1,19 @@
 package net.grandcentrix.backend.models;
 
-import io.ktor.http.*
-import io.ktor.server.util.*
 import net.grandcentrix.backend.models.MusicVideo.Companion.musicVideos
 import net.grandcentrix.backend.models.NewsVideo.Companion.newsVideos
 import net.grandcentrix.backend.models.StorageManagerMemory.Companion.StorageManagerMemoryInstance
 
-open class VideoManager(storage: StorageManagerInterface) : VideoManagerInterface {
+open class VideoManager(var storage: StorageManagerInterface, private val formManager: FormManager) : VideoManagerInterface {
     companion object {
-        val VideoManagerInstance: VideoManager = VideoManager(StorageManagerMemoryInstance)
-        var link = String()
-        var actionTitle = "Add a new video:"
-        var buttonAction = "/add-video"
-        var youtubeUrls = listOf("https://www.youtube.com/watch?v=", "https://youtube.com/watch?v=", "youtube.com/watch?v=", "www.youtube.com/watch?v=")
+        val VideoManagerInstance: VideoManager = VideoManager(StorageManagerMemoryInstance, FormManager())
     }
 
     private var videos = storage.listVideos()
-    private var storeIn = storage
-    private var status = String()
+    private var link = String()
 
     override fun defineStorage(storageType: StorageManagerInterface) {
-        storeIn = storageType
+        storage = storageType
     }
 
     override fun getVideos(): MutableList<Video> {
@@ -50,25 +43,8 @@ open class VideoManager(storage: StorageManagerInterface) : VideoManagerInterfac
         return video
     }
 
-    override fun getVideoData(formParameters: Parameters) {
-        val id = formParameters.getOrFail("link").substringAfter("v=").substringBefore("&")
-        val link = formParameters.getOrFail("link")
-        val title = formParameters.getOrFail("title")
-        val videoType = formParameters.getOrFail("videoTypes")
-        val assignedType = VideoType.assignType(videoType)
-
-        if (id.isBlank() || title.isBlank()) {
-            status = "Video link and title cannot be blank or video link is not supported!"
-        } else if (!(link.startsWith(youtubeUrls.get(0)) || link.startsWith(youtubeUrls.get(1)) || link.startsWith(youtubeUrls.get(2)) || link.startsWith(youtubeUrls.get(3)))) {
-            status = "Video link is not supported!"
-        } else {
-            val video = Video(id, title, link, assignedType)
-            addVideo(video)
-        }
-
-    }
-
-    override fun addVideo(video: Video) {
+    override fun addVideo() {
+        val video = formManager.getVideo()
         if (findVideo(video.id) == null) {
             if (video.videoType == VideoType.MUSIC) {
                 val newVideo = MusicVideo(video.id, video.title, link, VideoType.MUSIC)
@@ -80,10 +56,10 @@ open class VideoManager(storage: StorageManagerInterface) : VideoManagerInterfac
                     videos = videos.union(newsVideos).toMutableList()
             }
             // add video types list to videos
-            storeIn.updateStorage(videos)
-            status = "Video added!"
+            storage.setVideos(videos)
+            formManager.setStatus("Video added!")
         } else {
-            status = "Video already exists!"
+            formManager.setStatus("Video already exists!")
         }
     }
 
@@ -91,50 +67,33 @@ open class VideoManager(storage: StorageManagerInterface) : VideoManagerInterfac
         if (videos.size > 1) {
             val video = findVideo(id)
             videos.remove(video)
-            status = if (findVideo(id) == null) {
-                "Video deleted!"
+            if (findVideo(id) == null) {
+                formManager.setStatus("Video deleted!")
             } else {
-                "Oops, there are some problem while deleting!"
+                formManager.setStatus("Oops, there are some problem while deleting!")
             }
-            storeIn.updateStorage(videos)
+            storage.setVideos(videos)
         } else {
-            status = "The list cannot be empty!"
+            formManager.setStatus("The list cannot be empty!")
         }
     }
 
-    override fun getUpdatedData(id: String, formParameters: Parameters) {
-        val newTitle = formParameters.getOrFail("title")
-        val newType = formParameters.getOrFail("videoTypes")
-        val videoType = VideoType.assignType(newType)
+    override fun updateVideo() {
+        val newValues = formManager.getUpdatedVideoValues()
+        val newVideoType = VideoType.assignType(newValues["newType"].toString())
+        val video = findVideo(newValues["id"].toString())
 
-        if (newTitle.isBlank()) {
-            status = "Video title cannot be blank!"
-        } else {
-            updateVideo(id, newTitle, videoType)
-            actionTitle = "Add a new video:"
-            buttonAction = "/add-video"
-        }
-    }
-
-    override fun updateVideo(id: String, newTitle: String, newType: VideoType) {
-        val video = findVideo(id)
         if (video != null) {
-            video.title = newTitle
-            video.videoType = newType
-            status = "Video updated!"
-            storeIn.updateStorage(videos)
+            video.title = newValues["newTitle"].toString()
+            video.videoType = newVideoType
+            formManager.setStatus("Video updated!")
+            storage.setVideos(videos)
         } else {
-            status = "Video not found!"
+            formManager.setStatus("Video not found!")
         }
     }
 
-    override fun updateForm(id: String) {
-        actionTitle = "Update video title:"
-        buttonAction = "$id/update"
-        val video = videos.single { it.id == id }
-        link = video.link
-    }
-
+    // mocking
     override fun shuffle(): String {
         val idArray = mutableListOf<String>()
         for (video in videos) {
@@ -168,7 +127,5 @@ open class VideoManager(storage: StorageManagerInterface) : VideoManagerInterfac
         return randomId
     }
 
-    override fun getStatus(): String {
-        return status
-    }
+
 }

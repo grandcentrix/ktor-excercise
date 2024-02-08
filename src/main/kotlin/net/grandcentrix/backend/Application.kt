@@ -3,6 +3,7 @@ package net.grandcentrix.backend
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import net.grandcentrix.backend.models.FormManager.Companion.FormManagerInstance
 import net.grandcentrix.backend.models.StorageManagerFile.Companion.StorageManagerFileInstance
 import net.grandcentrix.backend.models.StorageManagerMemory.Companion.StorageManagerMemoryInstance
 import net.grandcentrix.backend.models.VideoManager.Companion.VideoManagerInstance
@@ -16,7 +17,7 @@ fun main() {
     if (saveVideos) {
         val videosJson = StorageManagerFileInstance.listVideos()
         if (videosJson.isNotEmpty()) {
-            StorageManagerMemoryInstance.updateStorage(videosJson)
+            StorageManagerMemoryInstance.setVideos(videosJson)
             VideoManagerInstance.defineStorage(StorageManagerFileInstance)
             VideoManagerInstance.loadVideosToType(videosJson)
         }
@@ -29,5 +30,5 @@ fun main() {
 fun Application.module() {
     configureSecurity()
     configureTemplating()
-    configureRouting(VideoManagerInstance)
+    configureRouting(VideoManagerInstance, FormManagerInstance)
 }

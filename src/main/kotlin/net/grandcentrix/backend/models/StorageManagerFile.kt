@@ -25,7 +25,7 @@ open class StorageManagerFile() : StorageManagerInterface {
         return mutableListOf()
     }
 
-    override fun updateStorage(videos: MutableList<Video>) {
+    override fun setVideos(videos: MutableList<Video>) {
         val videosJson = Json.encodeToJsonElement(videos).toString()
         getFile().writeText(videosJson)
     }

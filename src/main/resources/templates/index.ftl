@@ -12,14 +12,14 @@
         <section class="container-right">
 
             <section class="new-video">
-                <h2>${actionTitle}</h2>
-                <form action="${buttonAction}" method="POST">
-                    <#if actionTitle == "Add a new video:">
+                <h2>${formAction["name"]}</h2>
+                <form action="${formAction["link"]}" method="POST">
+                    <#if formAction["type"] == "ADD">
                         <label>
                             <input placeholder="Insert video link" type="text" name="link">
                         </label>
                     </#if>
-                    <#if actionTitle == "Update video title:">
+                    <#if formAction["type"] == "UPDATE">
                         <label>
                             ${link}
                         </label>
@@ -39,7 +39,7 @@
                     </p>
                     <input class="button" type="submit">
                 </form>
-                <#if actionTitle == "Update video title:">
+                <#if formAction["type"] == "UPDATE">
                     <button class="button"><a href="/cancel">Cancel</a></button>
                 </#if>
                 <p>${status}</p>
