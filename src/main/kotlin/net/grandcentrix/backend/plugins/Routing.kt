@@ -7,9 +7,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.util.*
-import net.grandcentrix.backend.models.FormActionType
-import net.grandcentrix.backend.models.FormActionType.Companion.getFormAction
-import net.grandcentrix.backend.models.FormActionType.Companion.getFormTitle
 import net.grandcentrix.backend.models.FormManager
 import net.grandcentrix.backend.models.VideoManager
 import net.grandcentrix.backend.models.VideoType
@@ -22,9 +19,9 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
                     mapOf(
                         "videos" to videoManager.getVideos(),
                         "randomId" to videoManager.shuffle(),
-                        "status" to formManager.getStatus(),
-                        "formAction" to formManager.getFormActionType(),
-                        "link" to formManager.getLink(),
+                        "status" to formManager.status,
+                        "formAction" to formManager.formAttributes,
+                        "video" to formManager.video,
                         "videoType" to VideoType.entries.dropLast(1)
                     )
                 ))
@@ -36,25 +33,17 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
                 call.respondRedirect("/")
             }
 
-            get("/{id}/delete") {
-                val id = call.parameters.getOrFail<String>("id")
-                videoManager.deleteVideo(id)
+            get("/shuffle") {
                 call.respondRedirect("/")
             }
 
-            get("/{id}/update") {
-                val id = call.parameters.getOrFail<String>("id")
-                val video = videoManager.getVideos().single { it.id == id }
-                formManager.updateFormAction(id, video)
-                call.respondRedirect("/")
+            get("{videoType}/shuffle") {
+                val videoType = call.parameters.getOrFail<String>("videoType")
+                call.respondRedirect("/$videoType/videos")
             }
 
-            post("/{id}/update") {
-                val id = call.parameters.getOrFail<String>("id")
-                val formParameters = call.receiveParameters()
-                formManager.setUpdatedVideoParameters(id, formParameters)
-                videoManager.updateVideo()
-                call.respondRedirect("/")
+            get("/style.css") {
+                call.respond(FreeMarkerContent("style.css", null, contentType = ContentType.Text.CSS))
             }
 
             get("/{videoType}/videos") {
@@ -64,44 +53,80 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
                     mapOf(
                         "videos" to videos,
                         "randomId" to videoManager.shuffleByType(videoType),
-                        "status" to formManager.getStatus(),
-                        "formAction" to formManager.getFormActionType(),
-                        "link" to formManager.getLink(),
+                        "status" to formManager.status,
+                        "formAction" to formManager.formAttributes,
+                        "video" to formManager.video,
                         "videoType" to videoType
                     )
                 ))
             }
+        }
 
-            get("/cancel") {
-                formManager.setActionTitle(getFormTitle(FormActionType.ADD))
-                formManager.setFormAction(getFormAction(FormActionType.ADD))
-//                call.respondRedirect(path)
+        route("/{id}") {
+
+            get("/delete") {
+                val id = call.parameters.getOrFail<String>("id")
+                videoManager.deleteVideo(id)
+                call.respondRedirect("/")
             }
 
-            get("/shuffle") {
-//                call.respondRedirect(path)
+            get("/update") {
+                val id = call.parameters.getOrFail<String>("id")
+                val video = videoManager.getVideos().single { it.id == id }
+                formManager.updateFormAction(id, video)
+                call.respondRedirect("/")
             }
 
-            get("/style.css") {
-                call.respond(FreeMarkerContent("style.css", null, contentType = ContentType.Text.CSS))
+            post("/update") {
+                val id = call.parameters.getOrFail<String>("id")
+                val formParameters = call.receiveParameters()
+                formManager.setUpdatedVideoParameters(id, formParameters)
+                videoManager.updateVideo()
+                call.respondRedirect("/")
+            }
+
+            get("/update/cancel") {
+                formManager.revertForm()
+                call.respondRedirect("/")
             }
         }
 
         route("/{videoType}/{id}") {
+
+            post("/add-video") {
+                val videoType = call.parameters.getOrFail<String>("videoType")
+                val formParameters = call.receiveParameters()
+                formManager.setVideoParameters(formParameters)
+                call.respondRedirect("/$videoType/videos")
+            }
+
+            get("/delete") {
+                val id = call.parameters.getOrFail<String>("id")
+                val videoType = call.parameters.getOrFail<String>("videoType")
+                videoManager.deleteVideo(id)
+                call.respondRedirect("/$videoType/videos")
+            }
+
             get("/update") {
                 val id = call.parameters.getOrFail<String>("id")
                 val videoType = call.parameters.getOrFail<String>("videoType")
                 val video = videoManager.getVideos().single { it.id == id }
                 formManager.updateFormAction(id, video)
-//                get uri from parent
                 call.respondRedirect("/$videoType/videos")
             }
 
-            post("/{id}/update") {
+            post("/update") {
                 val id = call.parameters.getOrFail<String>("id")
                 val videoType = call.parameters.getOrFail<String>("videoType")
                 val formParameters = call.receiveParameters()
                 formManager.setUpdatedVideoParameters(id, formParameters)
+                videoManager.updateVideo()
+                call.respondRedirect("/$videoType/videos")
+            }
+
+            get("/update/cancel") {
+                val videoType = call.parameters.getOrFail<String>("videoType")
+                formManager.revertForm()
                 call.respondRedirect("/$videoType/videos")
             }
         }

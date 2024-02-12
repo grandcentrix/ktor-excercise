@@ -6,25 +6,27 @@
                     src="https://www.youtube.com/embed/${randomId}">
             </iframe>
 
-            <a class="shuffle" href="/shuffle">Shuffle</a>
+            <a class="shuffle" href="/${videoType}/shuffle">Shuffle</a>
         </section>
 
         <section class="container-right">
 
             <section class="new-video">
-                <h2>${actionTitle}</h2>
-                <form action="${buttonAction}" method="POST">
-                    <#if actionTitle == "Add a new video:">
+
+                <h2>${formAction["name"]}</h2>
+
+                <form action="/${videoType}${formAction["link"]}" method="POST">
+
+                    <#if formAction["type"] == "ADD">
                         <label>
                             <input placeholder="Insert video link" type="text" name="link">
                         </label>
                     </#if>
-                    <#if actionTitle == "Update video title:">
+                    <#if formAction["type"] == "UPDATE">
                         <label>
-                            ${link}
+                            ${video.link}
                         </label>
                     </#if>
-
 
                     <label>
                         <input placeholder="Insert video title" type="text" name="title">
@@ -40,8 +42,8 @@
                     <input class="button" type="submit">
 
                 </form>
-                <#if actionTitle == "Update video title:">
-                    <button class="button"><a href="/cancel">Cancel</a></button>
+                <#if formAction["type"] == "UPDATE">
+                    <button class="button"><a href="${video.id}/update/cancel">Cancel</a></button>
                 </#if>
                 <p>${status}</p>
             </section>
@@ -68,7 +70,6 @@
                     </li>
                 </#list>
             </ul>
-
 
         </section>
 

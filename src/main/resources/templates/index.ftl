@@ -21,7 +21,7 @@
                     </#if>
                     <#if formAction["type"] == "UPDATE">
                         <label>
-                            ${link}
+                            ${video.link}
                         </label>
 
                     </#if>
@@ -40,7 +40,7 @@
                     <input class="button" type="submit">
                 </form>
                 <#if formAction["type"] == "UPDATE">
-                    <button class="button"><a href="/cancel">Cancel</a></button>
+                    <button class="button"><a href="${video.id}/update/cancel">Cancel</a></button>
                 </#if>
                 <p>${status}</p>
             </section>

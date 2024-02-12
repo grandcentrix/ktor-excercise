@@ -1,16 +1,19 @@
 package net.grandcentrix.backend.models;
 
+import net.grandcentrix.backend.models.FormManager.Companion.FormManagerInstance
 import net.grandcentrix.backend.models.MusicVideo.Companion.musicVideos
 import net.grandcentrix.backend.models.NewsVideo.Companion.newsVideos
 import net.grandcentrix.backend.models.StorageManagerMemory.Companion.StorageManagerMemoryInstance
 
-open class VideoManager(var storage: StorageManagerInterface, private val formManager: FormManager) : VideoManagerInterface {
+open class VideoManager(var storage: StorageManagerInterface, val formManager: FormManager) : VideoManagerInterface {
     companion object {
-        val VideoManagerInstance: VideoManager = VideoManager(StorageManagerMemoryInstance, FormManager())
+        val VideoManagerInstance: VideoManager = VideoManager(StorageManagerMemoryInstance, FormManagerInstance)
     }
 
-    private var videos = storage.listVideos()
-    private var link = String()
+    private var videos: MutableList<Video> = storage.listVideos()
+    private var link: String = String()
+
+    fun FormManager.extension() {}
 
     override fun defineStorage(storageType: StorageManagerInterface) {
         storage = storageType
@@ -44,7 +47,7 @@ open class VideoManager(var storage: StorageManagerInterface, private val formMa
     }
 
     override fun addVideo() {
-        val video = formManager.getVideo()
+        val video = formManager.video
         if (findVideo(video.id) == null) {
             if (video.videoType == VideoType.MUSIC) {
                 val newVideo = MusicVideo(video.id, video.title, link, VideoType.MUSIC)
@@ -57,9 +60,9 @@ open class VideoManager(var storage: StorageManagerInterface, private val formMa
             }
             // add video types list to videos
             storage.setVideos(videos)
-            formManager.setStatus("Video added!")
+            formManager.status = "Video added!"
         } else {
-            formManager.setStatus("Video already exists!")
+            formManager.status = "Video already exists!"
         }
     }
 
@@ -68,28 +71,28 @@ open class VideoManager(var storage: StorageManagerInterface, private val formMa
             val video = findVideo(id)
             videos.remove(video)
             if (findVideo(id) == null) {
-                formManager.setStatus("Video deleted!")
+                formManager.status = "Video deleted!"
             } else {
-                formManager.setStatus("Oops, there are some problem while deleting!")
+                formManager.status = "Oops, there are some problem while deleting!"
             }
             storage.setVideos(videos)
         } else {
-            formManager.setStatus("The list cannot be empty!")
+            formManager.status = "The list cannot be empty!"
         }
     }
 
     override fun updateVideo() {
-        val newValues = formManager.getUpdatedVideoValues()
+        val newValues = formManager.updatedVideoValues
         val newVideoType = VideoType.assignType(newValues["newType"].toString())
         val video = findVideo(newValues["id"].toString())
 
         if (video != null) {
             video.title = newValues["newTitle"].toString()
             video.videoType = newVideoType
-            formManager.setStatus("Video updated!")
+            formManager.status = "Video updated!"
             storage.setVideos(videos)
         } else {
-            formManager.setStatus("Video not found!")
+            formManager.status = "Video not found!"
         }
     }
 

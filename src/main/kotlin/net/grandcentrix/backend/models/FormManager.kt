@@ -9,34 +9,47 @@ class FormManager() {
         val FormManagerInstance: FormManager = FormManager()
     }
 
-    private var youtubeUrls = listOf("https://www.youtube.com/watch?v=", "https://youtube.com/watch?v=", "youtube.com/watch?v=", "www.youtube.com/watch?v=")
-    private var actionTitle = FormActionType.getFormTitle(FormActionType.ADD)
-    private var formAction = FormActionType.getFormAction(FormActionType.ADD)
+    private var actionTitle = getFormTitle(FormActionType.ADD)
+    private var formAction = getFormAction(FormActionType.ADD)
     private var formActionType = FormActionType.ADD.name
-    private var formAttributes = mutableMapOf("name" to actionTitle, "link" to formAction, "type" to formActionType)
-    private var status = String()
-    private lateinit var video: Video
-    private var updatedVideoValues = mutableMapOf<String,String>()
-    private var link = String()
+    var formAttributes = mutableMapOf("name" to actionTitle, "link" to formAction, "type" to formActionType)
 
-    fun getFormActionType(): Map<String,Any> {
-        return formAttributes
+    var video = Video("","","",VideoType.NONEXISTENT)
+    var status = String()
+    var updatedVideoValues = mutableMapOf<String,String>()
+    private var youtubeUrls = listOf("https://www.youtube.com/watch?v=", "https://youtube.com/watch?v=", "youtube.com/watch?v=", "www.youtube.com/watch?v=")
+
+    private fun getFormTitle(actionName: FormActionType): String {
+        when (actionName) {
+            FormActionType.ADD -> return "Add a new video:"
+            FormActionType.UPDATE -> return "Update video:"
+            else -> {
+                print("Error")
+                return "Wrong form action!"
+            }
+        }
     }
 
-    fun setActionTitle(actionTitle: String) {
-        this.actionTitle = actionTitle
+    private fun getFormAction(actionName: FormActionType, id: String = ""): String {
+        when (actionName) {
+            FormActionType.ADD -> return "/add-video"
+            FormActionType.UPDATE -> return "/${id}/update"
+            else -> {
+                print("Error")
+                return "Wrong form action!"
+            }
+        }
     }
 
-    fun setFormAction(formAction: String) {
-        this.formAction = formAction
-    }
-
-    fun getStatus(): String {
-        return status
-    }
-
-    fun setStatus(status: String) {
-        this.status = status
+    fun revertForm() {
+        actionTitle = getFormTitle(FormActionType.ADD)
+        formAction = getFormAction(FormActionType.ADD)
+        formActionType = FormActionType.ADD.name
+        formAttributes.apply{
+            put("name", actionTitle)
+            put("link", formAction)
+            put("type", formActionType)
+        }
     }
 
     fun setVideoParameters(formParameters: Parameters) {
@@ -58,10 +71,6 @@ class FormManager() {
         }
     }
 
-    fun getVideo(): Video {
-        return video
-    }
-
     fun setUpdatedVideoParameters(id: String, formParameters: Parameters) {
         val newTitle = formParameters.getOrFail("title")
         val newType = formParameters.getOrFail("videoTypes")
@@ -74,36 +83,20 @@ class FormManager() {
                 put("newTitle", newTitle)
                 put("newType", newType)
             }
-
-            actionTitle = FormActionType.getFormTitle(FormActionType.ADD)
-            formAction = FormActionType.getFormAction(FormActionType.ADD)
-            formActionType = FormActionType.ADD.name
-            formAttributes.apply{
-                put("name", actionTitle)
-                put("link", formAction)
-                put("type", formActionType)
-            }
+            revertForm()
         }
     }
 
      fun updateFormAction(id: String, video: Video) {
-         actionTitle = FormActionType.getFormTitle(FormActionType.UPDATE)
-         formAction = FormActionType.getFormAction(FormActionType.UPDATE, id)
+         actionTitle = getFormTitle(FormActionType.UPDATE)
+         formAction = getFormAction(FormActionType.UPDATE, id)
          formActionType = FormActionType.UPDATE.name
          formAttributes.apply{
              put("name", actionTitle)
              put("link", formAction)
              put("type", formActionType)
          }
-         link = video.link
-    }
-
-    fun getLink(): String {
-        return link
-    }
-
-    fun getUpdatedVideoValues(): Map<String,String> {
-        return updatedVideoValues
+         this.video = video
     }
 
 }
