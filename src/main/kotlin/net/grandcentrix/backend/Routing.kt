@@ -7,16 +7,17 @@ import io.ktor.server.response.*
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
 import io.ktor.server.html.*
+import kotlinx.coroutines.delay
 import kotlinx.html.*
 import java.net.URL
 
 
 
 fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playlistManager: PlaylistManager) {
-    val userPlaylist = playlistManager.getAllPlaylists()
 
 
     routing {
+        val userPlaylist = playlistManager.getAllPlaylists()
 
         get("/") {
             call.respondHtml {
@@ -76,15 +77,6 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                             }
 
 
-                            form(action = "/createPlaylist", method = FormMethod.post) {
-                                textInput {
-                                    name = "playlistName"
-                                    placeholder = "Enter playlist name"
-                                }
-                                submitInput {
-                                    value = "Create Playlist"
-                                }
-                            }
 
                             form(action = "/savePlaylists", method = FormMethod.post) {
                                 submitInput {
@@ -159,22 +151,25 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                         }
                     }
 
-                    form(action = "/addVideo", method = FormMethod.post) {
-                        textInput {
-                            name = "newVideoUrl"
-                            placeholder = "Enter YouTube URL"
+
+
+
+                    form(action = "/addVideoToPlaylist", method = FormMethod.post) {
+                        select {
+                            name = "videoId" // Set the name attribute to "videoId"
+                            // Populate the dropdown with video numbers and corresponding custom names or video IDs
+                            youtubeManager.getYoutubeLinks().forEachIndexed { index, videoInfo ->
+                                option {
+                                    val videoId = videoInfo.videoId // Extracted video ID
+                                    value = videoId // Set the value to the video ID
+                                    +if (videoInfo.customName.isNotEmpty()) "${videoInfo.customName} ($videoId)" else videoId
+                                }
+                            }
                         }
                         textInput {
                             name = "customName"
-                            placeholder = "Enter custom name"
+                            placeholder = "Enter custom name (optional)"
                         }
-                        submitInput {
-                            value = "Add new video"
-                            onClick = "addNewVideo(); return false;"
-                        }
-                    }
-
-                    form(action = "/addVideoToPlaylist", method = FormMethod.post) {
                         select {
                             name = "playlistName"
                             // Populate the dropdown with existing playlists
@@ -185,14 +180,11 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                                 }
                             }
                         }
-                        textInput {
-                            name = "videoNumberToAdd"
-                            placeholder = "Enter video number to add"
-                        }
                         submitInput {
                             value = "Add Video to Playlist"
                         }
                     }
+
 
                     form(action = "/renameVideoByNumber", method = FormMethod.post) {
                         textInput {
@@ -227,20 +219,20 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
 
         post("/addVideoToPlaylist") {
             val parameters = call.receiveParameters()
-            val videoNumberToAdd = parameters["videoNumberToAdd"]?.toIntOrNull()
-            val playlistName = parameters["playlistName"]?.trim() // Trim playlist name to remove whitespace
+            val videoId = parameters["videoId"]
+            val customName = parameters["customName"]
+            val playlistName = parameters["playlistName"]
 
-            if (videoNumberToAdd != null && videoNumberToAdd > 0 && playlistName != null && playlistName.isNotBlank()) {
+            println("Received parameters: videoId=$videoId, customName=$customName, playlistName=$playlistName")
+
+            if (videoId != null && playlistName != null && playlistName.isNotBlank()) {
                 try {
-                    // Get the video info based on the provided number
-                    val videoInfo = youtubeManager.getYoutubeLinks().getOrNull(videoNumberToAdd - 1)
-                    if (videoInfo != null) {
-                        // Add the video to the selected playlist
-                        youtubeManager.addVideo(videoInfo.videoId, videoInfo.customName, playlistName)
-                        call.respondRedirect("/")
-                    } else {
-                        call.respond(HttpStatusCode.BadRequest, "Invalid video number")
-                    }
+                    // Add a delay to simulate loading time
+                    delay(1000)
+
+                    // Add the video to the selected playlist
+                    youtubeManager.addVideoToPlaylist(videoId, customName, playlistName)
+                    call.respondRedirect("/")
                 } catch (e: IllegalArgumentException) {
                     call.respond(HttpStatusCode.BadRequest, "Error adding video to playlist: ${e.message}")
                 } catch (e: Exception) {
@@ -249,6 +241,40 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                 }
             } else {
                 call.respond(HttpStatusCode.BadRequest, "Invalid request parameters")
+            }
+        }
+
+
+
+        post("/addVideo") {
+            val parameters = call.receiveParameters()
+            val newVideoUrl = parameters["newVideoUrl"]
+            val customName = parameters["customName"] ?: ""
+            val playlistName = parameters["playlistName"] ?: "" // Extract playlistName parameter
+
+            if (!newVideoUrl.isNullOrBlank()) {
+                val url = URL(newVideoUrl)
+                val host = url.host
+
+                if (host == "www.youtube.com" || host == "youtube.com") {
+                    val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
+
+                    if (!videoId.isNullOrBlank()) {
+                        try {
+                            youtubeManager.addVideo(videoId, customName, playlistName) // Pass playlistName parameter
+                            youtubeManager.saveYouTubeLinks()
+                            call.respondRedirect("/")
+                        } catch (e: IllegalArgumentException) {
+                            call.respond(HttpStatusCode.BadRequest, e.message ?: "Error adding video to playlist")
+                        }
+                    } else {
+                        call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Video ID not found")
+                    }
+                } else {
+                    call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Host is not supported")
+                }
+            } else {
+                call.respond(HttpStatusCode.BadRequest, "URL is required")
             }
         }
 
@@ -323,17 +349,21 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
         }
         get("/userPlaylistPage") {
             val currentPlaylist = playlistManager.getCurrentPlaylist()
+            playlistManager.loadPlaylists()
 
             if (currentPlaylist != null) {
-                val playlistHtml = buildString {
-                    currentPlaylist.videos.forEach { videoInfo ->
-                        append("<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/${videoInfo.videoId}\" frameborder=\"0\" allowfullscreen></iframe>")
-                    }
-                }
                 call.respondHtml {
                     body {
-                        unsafe {
-                            raw(playlistHtml)
+                        currentPlaylist.videos.forEach { videoInfo ->
+                            div {
+                                iframe {
+                                    width = "560"
+                                    height = "315"
+                                    src = "https://www.youtube.com/embed/${videoInfo.videoId}"
+                                    attributes["frameborder"] = "0"
+                                    attributes["fullscreen"] = "true"
+                                }
+                            }
                         }
                     }
                 }
@@ -341,6 +371,8 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                 call.respond(HttpStatusCode.BadRequest, "No playlist selected")
             }
         }
+
+
 
 
 
@@ -360,11 +392,13 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
             try {
                 // Attempt to create the playlist with the provided custom name
                 playlistManager.createPlaylist(playlistName)
+                // No need to sleep here
                 call.respondRedirect("/")
             } catch (e: IllegalArgumentException) {
                 call.respond(HttpStatusCode.BadRequest, e.message ?: "Error creating playlist")
             }
         }
+
 
 
         post("/deletePlaylist") {
@@ -374,7 +408,9 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
 
             if (!playlistNameToDelete.isNullOrBlank() && playlistIndexToDelete != null) {
                 try {
+                    // Delete the playlist immediately from memory
                     playlistManager.deletePlaylist(playlistNameToDelete, playlistIndexToDelete)
+                    // No need to sleep here
                     call.respondRedirect("/")
                 } catch (e: IllegalArgumentException) {
                     call.respond(HttpStatusCode.BadRequest, e.message ?: "Error deleting playlist")
@@ -383,6 +419,5 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                 call.respond(HttpStatusCode.BadRequest, "Invalid playlist name or index")
             }
         }
-
     }
 }

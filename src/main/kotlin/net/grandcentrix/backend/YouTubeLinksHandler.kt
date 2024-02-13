@@ -11,16 +11,12 @@ import java.lang.Thread.sleep
 interface YouTubeManagerInterface {
     fun getRandomYouTubeVideoUrl(): String
     fun addVideo(videoId: String, customName: String, playlistName: String)
-
     fun removeVideoByNumber(videoNumber: Int)
     fun getYoutubeLinks(): List<VideoInfo>
     fun renameVideo(videoId: String, newCustomName: String): Boolean
     fun saveYouTubeLinks()
-
     fun addVideoToPlaylist(videoId: String, customName: String?, playlistName: String)
-
     fun removeVideo(videoId: String): Boolean
-
 }
 
 @Serializable
@@ -36,6 +32,7 @@ class JsonYouTubeManagerObjectClass private constructor(private val playlistMana
 
     init {
         loadYouTubeLinks()
+        playlistManager.loadPlaylists()
     }
 
     override fun getRandomYouTubeVideoUrl(): String {
@@ -49,19 +46,35 @@ class JsonYouTubeManagerObjectClass private constructor(private val playlistMana
     }
 
     override fun addVideoToPlaylist(videoId: String, customName: String?, playlistName: String) {
-        // Print available playlists for debugging
-        println("Available playlists:")
-        playlistManager.getAllPlaylists().forEach { println(it.name) }
+        // Attempt to create the playlist if it doesn't exist
+        try {
+            playlistManager.createPlaylist(playlistName)
+        } catch (e: IllegalArgumentException) {
+            // Playlist already exists, continue
+        }
 
-        val playlist = playlistManager.getAllPlaylists().find { it.name == playlistName }
+        // Print available playlists for debugging
+        val playlists = playlistManager.getAllPlaylists()
+        println("Available playlists:")
+        playlists.forEach { println(it.name) }
+
+        // Find the playlist to add the video to
+        val playlist = playlists.find { it.name == playlistName }
         if (playlist != null) {
+            // Add the video to the playlist
             playlist.videos.add(VideoInfo(videoId, customName ?: ""))
             playlistManager.savePlaylists()
-            playlistManager.loadPlaylists()
         } else {
             throw IllegalArgumentException("Playlist '$playlistName' not found.")
         }
     }
+
+
+
+
+
+
+
 
 
     override fun removeVideo(videoId: String): Boolean {
@@ -80,12 +93,10 @@ class JsonYouTubeManagerObjectClass private constructor(private val playlistMana
         if (playlist != null) {
             playlist.videos.add(VideoInfo(videoId, customName))
             playlistManager.savePlaylists()
-            playlistManager.loadPlaylists()
         } else {
             throw IllegalArgumentException("Playlist '$playlistName' not found.")
         }
     }
-
 
     override fun removeVideoByNumber(videoNumber: Int) {
         if (videoNumber >= 0 && videoNumber < youtubeLinks.size) {
@@ -162,12 +173,11 @@ class InMemoryYouTubeManagerClass private constructor(private val playlistManage
         if (playlist != null) {
             playlist.videos.add(VideoInfo(videoId, customName))
             playlistManager.savePlaylists()
-            playlistManager.loadPlaylists()
+
         } else {
             throw IllegalArgumentException("Playlist '$playlistName' not found.")
         }
     }
-
 
     override fun addVideoToPlaylist(videoId: String, customName: String?, playlistName: String) {
         // Print available playlists for debugging
@@ -178,13 +188,10 @@ class InMemoryYouTubeManagerClass private constructor(private val playlistManage
         if (playlist != null) {
             playlist.videos.add(VideoInfo(videoId, customName ?: ""))
             playlistManager.savePlaylists()
-            playlistManager.loadPlaylists()
         } else {
             throw IllegalArgumentException("Playlist '$playlistName' not found.")
         }
     }
-
-
 
     override fun removeVideoByNumber(videoNumber: Int) {
         if (videoNumber >= 0 && videoNumber < youtubeLinks.size) {
@@ -209,14 +216,14 @@ class InMemoryYouTubeManagerClass private constructor(private val playlistManage
     }
 }
 
-
 @Serializable
 data class Playlist(var name: String, val videos: MutableList<VideoInfo>)
 
 class PlaylistManager {
-    val playlists = mutableListOf<Playlist>()
+    private val playlists = mutableListOf<Playlist>()
     var currentPlaylistIndex: Int = -1
     private val json = Json
+
     init {
         loadPlaylists()
     }
@@ -227,13 +234,28 @@ class PlaylistManager {
             throw IllegalArgumentException("Playlist with name '$name' already exists.")
         }
 
+        // Print the name of the playlist we are attempting to create
+        println("Creating playlist: $name")
+
         // Create a new playlist and add it to the list
-        playlists.add(Playlist(name, mutableListOf()))
-        savePlaylistToFile(name)
-        sleep(3000)
-        loadPlaylists()
+        val newPlaylist = Playlist(name, mutableListOf())
+        playlists.add(newPlaylist)
+
+        // Print the playlists after adding the new one
+        println("Playlists after adding new playlist:")
+        playlists.forEach { println(it.name) }
+
+        // Save the new playlist to file immediately
+        println("Saving new playlist to file...")
+        savePlaylists()
+
+        // Print a message indicating successful creation
         println("Playlist $name created.")
     }
+
+
+
+
 
     fun getAllPlaylists(): List<Playlist> {
         return playlists
@@ -252,12 +274,14 @@ class PlaylistManager {
     fun renamePlaylist(oldName: String, newName: String) {
         val playlist = playlists.find { it.name == oldName } ?: throw IllegalArgumentException("Playlist with name '$oldName' not found.")
         playlist.name = newName
+        savePlaylists()
     }
 
     fun deletePlaylist(playlistName: String, playlistIndex: Int) {
         val playlist = playlists.getOrNull(playlistIndex) ?: throw IllegalArgumentException("Playlist at index $playlistIndex not found.")
         if (playlist.name == playlistName) {
             playlists.removeAt(playlistIndex)
+            savePlaylists() // Save the updated playlists immediately
         } else {
             throw IllegalArgumentException("Playlist at index $playlistIndex does not match the provided name '$playlistName'.")
         }
@@ -271,32 +295,36 @@ class PlaylistManager {
         }
     }
 
-    private fun savePlaylistToFile(name: String) {
-        val playlist = playlists.find { it.name == name } ?: return
-        val file = File("$name.json")
+    private fun savePlaylistToFile(playlist: Playlist) {
+        val file = File("${playlist.name}.json")
         val jsonContent = json.encodeToString(playlist)
         file.writeText(jsonContent)
-        println("Playlist '$name' saved successfully to ${file.name}")
+        println("Playlist '${playlist.name}' saved successfully to ${file.name}")
     }
 
+
     fun savePlaylists() {
-        playlists.forEach { savePlaylistToFile(it.name) }
+        playlists.forEach { savePlaylistToFile(it) }
     }
+
     fun loadPlaylists() {
         val playlistFiles = File(".").listFiles { file ->
             file.isFile && file.extension == "json"
         } ?: return
 
+        val loadedPlaylists: MutableList<Playlist> = mutableListOf()
         println("Loading playlists:")
         for (file in playlistFiles) {
             try {
                 val jsonContent = file.readText()
                 val playlist = json.decodeFromString<Playlist>(jsonContent)
-                playlists.add(playlist)
+                loadedPlaylists.add(playlist)
                 println("Playlist '${playlist.name}' loaded successfully from ${file.name}")
             } catch (e: Exception) {
                 println("Failed to load playlist from ${file.name}: ${e.message}")
             }
         }
+        playlists.clear()
+        playlists.addAll(loadedPlaylists)
     }
 }
