@@ -11,6 +11,7 @@ import java.lang.Thread.sleep
 interface YouTubeManagerInterface {
     fun getRandomYouTubeVideoUrl(): String
     fun addVideo(videoId: String, customName: String, playlistName: String)
+    fun addVideos(videoId: String, customName: String)
     fun removeVideoByNumber(videoNumber: Int)
     fun getYoutubeLinks(): List<VideoInfo>
     fun renameVideo(videoId: String, newCustomName: String): Boolean
@@ -70,13 +71,6 @@ class JsonYouTubeManagerObjectClass private constructor(private val playlistMana
     }
 
 
-
-
-
-
-
-
-
     override fun removeVideo(videoId: String): Boolean {
         val video = youtubeLinks.find { it.videoId == videoId }
         return if (video != null) {
@@ -96,6 +90,11 @@ class JsonYouTubeManagerObjectClass private constructor(private val playlistMana
         } else {
             throw IllegalArgumentException("Playlist '$playlistName' not found.")
         }
+    }
+
+    override fun addVideos(videoId: String, customName: String) {
+        youtubeLinks.add(VideoInfo(videoId, customName))
+        saveYouTubeLinks()
     }
 
     override fun removeVideoByNumber(videoNumber: Int) {
@@ -178,6 +177,11 @@ class InMemoryYouTubeManagerClass private constructor(private val playlistManage
             throw IllegalArgumentException("Playlist '$playlistName' not found.")
         }
     }
+    override fun addVideos(videoId: String, customName: String) {
+        youtubeLinks.add(VideoInfo(videoId, customName))
+        saveYouTubeLinks()
+    }
+
 
     override fun addVideoToPlaylist(videoId: String, customName: String?, playlistName: String) {
         // Print available playlists for debugging
