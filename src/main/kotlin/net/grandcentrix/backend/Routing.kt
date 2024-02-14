@@ -76,16 +76,6 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                                 }
                             }
 
-
-
-                            form(action = "/savePlaylists", method = FormMethod.post) {
-                                submitInput {
-                                    value = "Save Playlists"
-                                }
-                            }
-
-
-
                             form(action = "/deletePlaylist", method = FormMethod.post) {
                                 select {
                                     name = "playlistNameToDelete"
@@ -107,7 +97,7 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                                 select {
                                     id = "playlistSelectToRemove"
                                     name = "videoIdToRemove"
-                                    userPlaylist.forEach { playlist ->
+                                    playlistManager.getAllPlaylists().forEach { playlist ->
                                         playlist.videos.forEach { videoInfo ->
                                             option {
                                                 value = videoInfo.videoId
@@ -275,7 +265,6 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
 
                     if (!videoId.isNullOrBlank()) {
                         try {
-                            youtubeManager.addVideo(videoId, customName, playlistName) // Pass playlistName parameter
                             youtubeManager.saveYouTubeLinks()
                             call.respondRedirect("/")
                         } catch (e: IllegalArgumentException) {
@@ -339,10 +328,6 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
             }
         }
 
-        post("/savePlaylists") {
-            playlistManager.savePlaylists()
-            call.respondRedirect("/")
-        }
 
         post("/renameVideoByNumber") {
             val parameters = call.receiveParameters()
@@ -358,26 +343,7 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                 call.respond(HttpStatusCode.BadRequest, "Invalid video number or new custom name")
             }
         }
-        post("/playPlaylistVideo") {
-            val parameters = call.receiveParameters()
-            val playlistName = parameters["playlistName"]
-            val playlist = playlistManager.getAllPlaylists().find { it.name == playlistName }
 
-            val firstVideoId = playlist?.videos?.firstOrNull()?.videoId
-
-            if (!firstVideoId.isNullOrBlank()) {
-                call.respondHtml {
-                    head {
-                        meta {
-                            httpEquiv = "refresh"
-                            content = "0; url=https://www.youtube.com/embed/$firstVideoId"
-                        }
-                    }
-                }
-            } else {
-                call.respond(HttpStatusCode.BadRequest, "Playlist not found or no videos in playlist")
-            }
-        }
 
         post("/removeVideo") {
             val parameters = call.receiveParameters()
@@ -450,19 +416,17 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
         post("/deletePlaylist") {
             val parameters = call.receiveParameters()
             val playlistNameToDelete = parameters["playlistNameToDelete"]
-            val playlistIndexToDelete = parameters["playlistIndexToDelete"]?.toIntOrNull()
 
-            if (!playlistNameToDelete.isNullOrBlank() && playlistIndexToDelete != null) {
+            if (!playlistNameToDelete.isNullOrBlank()) {
                 try {
-                    // Delete the playlist immediately from memory
-                    playlistManager.deletePlaylist(playlistNameToDelete, playlistIndexToDelete)
-                    // No need to sleep here
+                    // Delete the playlist by name
+                    playlistManager.deletePlaylist(playlistNameToDelete)
                     call.respondRedirect("/")
                 } catch (e: IllegalArgumentException) {
                     call.respond(HttpStatusCode.BadRequest, e.message ?: "Error deleting playlist")
                 }
             } else {
-                call.respond(HttpStatusCode.BadRequest, "Invalid playlist name or index")
+                call.respond(HttpStatusCode.BadRequest, "Invalid playlist name")
             }
         }
     }

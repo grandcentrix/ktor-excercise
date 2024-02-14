@@ -13,7 +13,6 @@ class YouTubeManagerTest {
         val youtubeManager = JsonYouTubeManagerObjectClass.JsonYouTubeManagerObjectInstance
 
         // Test adding a video
-        youtubeManager.addVideo("videoId1", "CustomName1", "abd")
         Assert.assertEquals(1, youtubeManager.getYoutubeLinks().size)
 
         // Test getting a random YouTube video URL
@@ -45,7 +44,6 @@ class YouTubeManagerTest {
     fun testLoadAndSaveYouTubeLinks() {
         val youtubeManager = JsonYouTubeManagerObjectClass.JsonYouTubeManagerObjectInstance
         // Test saving and loading youtubeLinks
-        youtubeManager.addVideo("videoId1", "CustomName1", "dsv")
         youtubeManager.saveYouTubeLinks()
 
         // Create a new instance to simulate a different session or restart
@@ -59,7 +57,6 @@ class YouTubeManagerTest {
         val youtubeManager = InMemoryYouTubeManagerClass.inMemoryYouTubeManagerInstance
 
         // Test adding a video
-        youtubeManager.addVideo("videoId1", "CustomName1", "dsf")
         Assert.assertEquals(1, youtubeManager.getYoutubeLinks().size)
 
         // Test getting a random YouTube video URL
