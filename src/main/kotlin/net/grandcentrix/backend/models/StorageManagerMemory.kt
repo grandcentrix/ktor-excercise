@@ -1,7 +1,6 @@
 package net.grandcentrix.backend.models
 
-
-open class StorageManagerMemory() : StorageManagerInterface {
+open class StorageManagerMemory() : StorageManagerInterface<MutableList<Video>,MutableList<Video>> {
     companion object {
         val StorageManagerMemoryInstance: StorageManagerMemory = StorageManagerMemory()
         const val videoId = "1YBtzAAChU8"
@@ -11,12 +10,11 @@ open class StorageManagerMemory() : StorageManagerInterface {
 
     private var videos = mutableListOf(Video(videoId, videoTitle, videoLink, VideoType.MUSIC))
 
-    override fun listVideos(): MutableList<Video> {
+    override fun getContent(): MutableList<Video> {
         return this.videos
     }
 
-    override fun setVideos(videos: MutableList<Video>) {
-        this.videos = videos
+    override fun setContent(item: MutableList<Video>) {
+        this.videos = item
     }
-
 }

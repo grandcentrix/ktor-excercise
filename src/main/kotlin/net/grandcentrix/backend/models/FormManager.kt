@@ -2,6 +2,7 @@ package net.grandcentrix.backend.models
 
 import io.ktor.http.*
 import io.ktor.server.util.*
+import net.grandcentrix.backend.models.StorageManagerTypesFile.Companion.StorageManagerTypesFileInstance
 
 class FormManager() {
 
@@ -14,9 +15,10 @@ class FormManager() {
     private var formActionType = FormActionType.ADD.name
     var formAttributes = mutableMapOf("name" to actionTitle, "link" to formAction, "type" to formActionType)
 
-    var video = Video("","","",VideoType.NONEXISTENT)
+    var video = Video("","","",VideoType.CUSTOM)
+    val videoTypes = StorageManagerTypesFileInstance.getContent()
     var status = String()
-    var updatedVideoValues = mutableMapOf<String,String>()
+    var updatedVideoValues = mutableMapOf<String,Any>()
     private var youtubeUrls = listOf("https://www.youtube.com/watch?v=", "https://youtube.com/watch?v=", "youtube.com/watch?v=", "www.youtube.com/watch?v=")
 
     private fun getFormTitle(actionName: FormActionType): String {
@@ -30,7 +32,7 @@ class FormManager() {
         }
     }
 
-    private fun getFormAction(actionName: FormActionType, id: String = ""): String {
+    private fun getFormAction(actionName: FormActionType, id: String = String()): String {
         when (actionName) {
             FormActionType.ADD -> return "/add-video"
             FormActionType.UPDATE -> return "/${id}/update"
@@ -57,7 +59,7 @@ class FormManager() {
         val link = formParameters.getOrFail("link")
         val title = formParameters.getOrFail("title")
         val videoType = formParameters.getOrFail("videoTypes")
-        val assignedType = VideoType.assignType(videoType)
+        val customTypeName = formParameters.getOrFail("customType")
 
         if (id.isBlank() || title.isBlank()) {
             status = "Video link and title cannot be blank!"
@@ -67,13 +69,20 @@ class FormManager() {
         {
             status = "Video link is not supported!"
         } else {
-            video = Video(id, title, link, assignedType)
+            val assignedType = assignType(videoType)
+            if (customTypeName.isNotBlank()){
+                videoTypes.add(customTypeName)
+                StorageManagerTypesFileInstance.setContent(videoTypes)
+            }
+            video = Video(id, title, link, assignedType, customTypeName)
         }
     }
 
     fun setUpdatedVideoParameters(id: String, formParameters: Parameters) {
         val newTitle = formParameters.getOrFail("title")
         val newType = formParameters.getOrFail("videoTypes")
+        val customTypeName = formParameters.getOrFail("customType")
+        val assignedType = assignType(newType)
 
         if (newTitle.isBlank()) {
             status = "Video title cannot be blank!"
@@ -81,7 +90,16 @@ class FormManager() {
             updatedVideoValues.apply {
                 put("id", id)
                 put("newTitle", newTitle)
-                put("newType", newType)
+                put("newType", assignedType)
+                put("newCustomTypeName", customTypeName)
+            }
+            if (customTypeName.isNotBlank() && assignedType == VideoType.CUSTOM) {
+                videoTypes.add(customTypeName)
+                StorageManagerTypesFileInstance.setContent(videoTypes)
+            } else if (assignedType == VideoType.CUSTOM) {
+                updatedVideoValues.apply {
+                    put("newCustomTypeName", newType)
+                }
             }
             revertForm()
         }

@@ -16,7 +16,7 @@ class StorageManagerTest {
 
     @Test
     fun testListVideosMemory() {
-        val videos = StorageManagerMemoryInstance.listVideos()
+        val videos = StorageManagerMemoryInstance.getContent()
         val other = videos.find {
             it.id == video.id &&
                     it.title == video.title &&
@@ -30,7 +30,7 @@ class StorageManagerTest {
 
     @Test
     fun testListVideosFile() {
-        val videos = StorageManagerFileInstance.listVideos()
+        val videos = StorageManagerFileInstance.getContent()
         val other = videos.find {
             it.id == video.id &&
                     it.title == video.title &&

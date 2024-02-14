@@ -1,6 +1,6 @@
 package net.grandcentrix.backend.models
 
-interface StorageManagerInterface {
-    fun listVideos(): MutableList<Video>
-    fun setVideos(videos: MutableList<Video>)
+interface StorageManagerInterface<in I, out O> {
+    fun getContent(): O
+    fun setContent(item: I)
 }

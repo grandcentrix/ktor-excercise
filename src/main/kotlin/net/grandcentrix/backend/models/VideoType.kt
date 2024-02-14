@@ -1,18 +1,20 @@
 package net.grandcentrix.backend.models
 
-enum class VideoType {
-    MUSIC, NEWS, GAME, EDU, DOC, LIVE, NONEXISTENT;
+enum class VideoType() {
+    MUSIC, NEWS, GAME, EDU, DOC, LIVE, CUSTOM;
+}
 
-    companion object {
-        fun assignType(videoType: String): VideoType {
-            when (videoType) {
-                "MUSIC" -> return MUSIC
-                "NEWS" -> return NEWS
-                else -> {
-                    print("Error")
-                    return NONEXISTENT
-                }
-            }
+fun assignType(videoType: String): VideoType {
+    return when (videoType) {
+        "MUSIC" -> VideoType.MUSIC
+        "NEWS" -> VideoType.NEWS
+        "GAME" -> VideoType.GAME
+        "EDU" -> VideoType.EDU
+        "DOC" -> VideoType.DOC
+        "LIVE" -> VideoType.LIVE
+        "CUSTOM" -> VideoType.CUSTOM
+        else -> {
+            VideoType.CUSTOM
         }
     }
 }

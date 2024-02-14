@@ -32,12 +32,26 @@
                         <input placeholder="Insert video title" type="text" name="title">
                     </label>
 
+                    <#if formAction["type"] == "ADD">
                     <p>
                         <label for="videoTypes">Choose a type:</label>
                         <select name="videoTypes" id="videoTypes">
                             <option name="type" value="${videoType}">${videoType}</option>
                         </select>
+                        <input placeholder="Custom type name" type="text" name="customType">
                     </p>
+                    </#if>
+
+                    <#if formAction["type"] == "UPDATE">
+                        <p>
+                            <label for="videoTypes">Choose a type:</label>
+                            <select name="videoTypes" id="videoTypes">
+                                <#list videoTypes as type>
+                                    <option name="type" value="${type}">${type}</option>
+                                </#list>
+                            </select>
+                        </p>
+                    </#if>
 
                     <input class="button" type="submit">
 
@@ -60,7 +74,12 @@
                     <li>
                         <span style="display: flex;align-items: center;">
                             <a href="https://www.youtube.com/watch?v=${video.id}">${video.title}</a>
-                            <a class="button-type" href="">${video.videoType}</a>
+                            <#if video.videoType == "CUSTOM">
+                                <a class="button-type" href="">${video.customTypeName}</a>
+                            </#if>
+                            <#if video.videoType != "CUSTOM">
+                                <a class="button-type" href="">${video.videoType}</a>
+                            </#if>
                         </span>
 
                         <span>

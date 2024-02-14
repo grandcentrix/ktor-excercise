@@ -33,12 +33,12 @@ h1 a {
     margin: 0 auto;
     height: 100%;
     flex-direction: row;
-    align-items: center;
+    /* align-items: center; */
     justify-content: center;
     width: 100%;
 }
 
-.container-left {display: flex;flex-direction: column;width: 60%;}
+.container-left {display: flex;flex-direction: column;width: 60%;/* justify-content: flex-start; */}
 
 .container-right {
     width: 25%;
@@ -46,7 +46,6 @@ h1 a {
     flex-direction: column;
     margin: 0;
     padding: 0 40px;
-    justify-content: center;
 }
 
 .videos-list {
@@ -126,7 +125,7 @@ section.new-video {
     flex-direction: column;
     width: 100%;
     align-items: flex-end;
-    margin-top: 1em;
+    /* margin-top: 1em; */
 }
 
 h2 {
@@ -137,6 +136,7 @@ h2 {
     padding: 15px;
     /* display: inline-block; */
     align-self: flex-start;
+    margin-top: 0;
 }
 
 form input[type="text"], form input[type="submit"] {

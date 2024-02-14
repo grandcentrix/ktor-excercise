@@ -22,7 +22,7 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
                         "status" to formManager.status,
                         "formAction" to formManager.formAttributes,
                         "video" to formManager.video,
-                        "videoType" to VideoType.entries.dropLast(1)
+                        "videoTypes" to formManager.videoTypes
                     )
                 ))
             }
@@ -30,6 +30,7 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
             post("/add-video") {
                 val formParameters = call.receiveParameters()
                 formManager.setVideoParameters(formParameters)
+                videoManager.addVideo()
                 call.respondRedirect("/")
             }
 
@@ -48,22 +49,21 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
 
             get("/{videoType}/videos") {
                 val videoType = call.parameters.getOrFail<String>("videoType")
-                val videos = videoManager.getVideosByType(videoType)
                 call.respond(FreeMarkerContent("videosByType.ftl",
                     mapOf(
-                        "videos" to videos,
+                        "videos" to videoManager.getVideosByType(videoType),
                         "randomId" to videoManager.shuffleByType(videoType),
                         "status" to formManager.status,
                         "formAction" to formManager.formAttributes,
                         "video" to formManager.video,
-                        "videoType" to videoType
+                        "videoType" to videoType,
+                        "videoTypes" to VideoType.entries.dropLast(1)
                     )
                 ))
             }
         }
 
         route("/{id}") {
-
             get("/delete") {
                 val id = call.parameters.getOrFail<String>("id")
                 videoManager.deleteVideo(id)
@@ -91,23 +91,24 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
             }
         }
 
-        route("/{videoType}/{id}") {
+        route("/{videoType}") {
 
             post("/add-video") {
                 val videoType = call.parameters.getOrFail<String>("videoType")
                 val formParameters = call.receiveParameters()
                 formManager.setVideoParameters(formParameters)
+                videoManager.addVideo()
                 call.respondRedirect("/$videoType/videos")
             }
 
-            get("/delete") {
+            get("/{id}/delete") {
                 val id = call.parameters.getOrFail<String>("id")
                 val videoType = call.parameters.getOrFail<String>("videoType")
                 videoManager.deleteVideo(id)
                 call.respondRedirect("/$videoType/videos")
             }
 
-            get("/update") {
+            get("/{id}/update") {
                 val id = call.parameters.getOrFail<String>("id")
                 val videoType = call.parameters.getOrFail<String>("videoType")
                 val video = videoManager.getVideos().single { it.id == id }
@@ -115,7 +116,7 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
                 call.respondRedirect("/$videoType/videos")
             }
 
-            post("/update") {
+            post("/{id}/update") {
                 val id = call.parameters.getOrFail<String>("id")
                 val videoType = call.parameters.getOrFail<String>("videoType")
                 val formParameters = call.receiveParameters()
@@ -124,7 +125,7 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
                 call.respondRedirect("/$videoType/videos")
             }
 
-            get("/update/cancel") {
+            get("/{id}/update/cancel") {
                 val videoType = call.parameters.getOrFail<String>("videoType")
                 formManager.revertForm()
                 call.respondRedirect("/$videoType/videos")

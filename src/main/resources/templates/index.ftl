@@ -32,10 +32,13 @@
                     <p>
                         <label for="videoTypes">Choose a type:</label>
                         <select name="videoTypes" id="videoTypes">
-                            <#list videoType as type>
+                            <#list videoTypes as type>
                                 <option name="type" value="${type}">${type}</option>
                             </#list>
                         </select>
+                        <label>
+                            <input placeholder="Custom type name" type="text" name="customType">
+                        </label>
                     </p>
                     <input class="button" type="submit">
                 </form>
@@ -52,7 +55,12 @@
                     <li>
                         <span style="display: flex;align-items: center;">
                             <a href="https://www.youtube.com/watch?v=${video.id}">${video.title}</a>
-                            <a class="button-type" href="${video.videoType}/videos">${video.videoType}</a>
+                            <#if video.videoType == "CUSTOM">
+                                <a class="button-type" href="${video.customTypeName}/videos">${video.customTypeName}</a>
+                            </#if>
+                            <#if video.videoType != "CUSTOM">
+                                <a class="button-type" href="${video.videoType}/videos">${video.videoType}</a>
+                            </#if>
                         </span>
 
                         <span>
