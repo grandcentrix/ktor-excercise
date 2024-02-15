@@ -24,8 +24,8 @@ open class StorageManagerTypesFile(): StorageManagerInterface<MutableList<String
         return mutableListOf()
     }
 
-    override fun setContent(item: MutableList<String>) {
-        val videoTypes = Json.encodeToJsonElement(item).toString()
+    override fun setContent(list: MutableList<String>) {
+        val videoTypes = Json.encodeToJsonElement(list).toString()
         getFile().writeText(videoTypes)
     }
 

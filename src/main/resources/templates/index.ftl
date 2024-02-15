@@ -12,8 +12,11 @@
         <section class="container-right">
 
             <section class="new-video">
+
                 <h2>${formAction["name"]}</h2>
+
                 <form action="${formAction["link"]}" method="POST">
+
                     <#if formAction["type"] == "ADD">
                         <label>
                             <input placeholder="Insert video link" type="text" name="link">

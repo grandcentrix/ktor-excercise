@@ -9,7 +9,6 @@ import io.ktor.server.routing.*
 import io.ktor.server.util.*
 import net.grandcentrix.backend.models.FormManager
 import net.grandcentrix.backend.models.VideoManager
-import net.grandcentrix.backend.models.VideoType
 
 fun Application.configureRouting(videoManager: VideoManager, formManager: FormManager) {
     routing {
@@ -57,7 +56,7 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
                         "formAction" to formManager.formAttributes,
                         "video" to formManager.video,
                         "videoType" to videoType,
-                        "videoTypes" to VideoType.entries.dropLast(1)
+                        "videoTypes" to formManager.videoTypes
                     )
                 ))
             }

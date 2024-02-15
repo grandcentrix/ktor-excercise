@@ -38,7 +38,9 @@
                         <select name="videoTypes" id="videoTypes">
                             <option name="type" value="${videoType}">${videoType}</option>
                         </select>
-                        <input placeholder="Custom type name" type="text" name="customType">
+                        <label>
+                            <input placeholder="Custom type name" type="text" name="customType">
+                        </label>
                     </p>
                     </#if>
 
@@ -50,6 +52,9 @@
                                     <option name="type" value="${type}">${type}</option>
                                 </#list>
                             </select>
+                            <label>
+                                <input placeholder="Custom type name" type="text" name="customType">
+                            </label>
                         </p>
                     </#if>
 

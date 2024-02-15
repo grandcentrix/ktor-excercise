@@ -59,7 +59,7 @@ class FormManager() {
         val link = formParameters.getOrFail("link")
         val title = formParameters.getOrFail("title")
         val videoType = formParameters.getOrFail("videoTypes")
-        val customTypeName = formParameters.getOrFail("customType")
+        var customTypeName = formParameters.getOrFail("customType")
 
         if (id.isBlank() || title.isBlank()) {
             status = "Video link and title cannot be blank!"
@@ -70,9 +70,11 @@ class FormManager() {
             status = "Video link is not supported!"
         } else {
             val assignedType = assignType(videoType)
-            if (customTypeName.isNotBlank()){
+            if (customTypeName.isNotBlank() && assignedType == VideoType.CUSTOM){
                 videoTypes.add(customTypeName)
                 StorageManagerTypesFileInstance.setContent(videoTypes)
+            } else if (assignedType == VideoType.CUSTOM) {
+                customTypeName = videoType
             }
             video = Video(id, title, link, assignedType, customTypeName)
         }
@@ -84,25 +86,23 @@ class FormManager() {
         val customTypeName = formParameters.getOrFail("customType")
         val assignedType = assignType(newType)
 
-        if (newTitle.isBlank()) {
-            status = "Video title cannot be blank!"
-        } else {
-            updatedVideoValues.apply {
+        updatedVideoValues.apply {
                 put("id", id)
                 put("newTitle", newTitle)
                 put("newType", assignedType)
                 put("newCustomTypeName", customTypeName)
-            }
-            if (customTypeName.isNotBlank() && assignedType == VideoType.CUSTOM) {
-                videoTypes.add(customTypeName)
-                StorageManagerTypesFileInstance.setContent(videoTypes)
-            } else if (assignedType == VideoType.CUSTOM) {
-                updatedVideoValues.apply {
-                    put("newCustomTypeName", newType)
-                }
-            }
-            revertForm()
         }
+
+        if (customTypeName.isNotBlank() && assignedType == VideoType.CUSTOM) {
+            videoTypes.add(customTypeName)
+            StorageManagerTypesFileInstance.setContent(videoTypes)
+        } else if (assignedType == VideoType.CUSTOM) {
+            updatedVideoValues.apply {
+                put("newCustomTypeName", newType)
+            }
+        }
+
+        revertForm()
     }
 
      fun updateFormAction(id: String, video: Video) {
