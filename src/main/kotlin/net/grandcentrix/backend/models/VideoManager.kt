@@ -1,6 +1,6 @@
 package net.grandcentrix.backend.models;
 
-import io.ktor.server.plugins.*
+import net.grandcentrix.backend.models.CustomTypeVideo.Companion.customTypeVideos
 import net.grandcentrix.backend.models.FormManager.Companion.FormManagerInstance
 import net.grandcentrix.backend.models.NewsVideo.Companion.newsVideos
 import net.grandcentrix.backend.models.StorageManagerMemory.Companion.StorageManagerMemoryInstance
@@ -15,30 +15,30 @@ open class VideoManager private constructor(
         private var musicVideos = mutableListOf<MusicVideo>()
     }
 
-    private var videos: MutableList<Video> = storage.getContent()
-
     override fun defineStorage(storageType: StorageManagerInterface<MutableList<Video>,MutableList<Video>>) {
         storage = storageType
     }
 
     override fun getVideos(): MutableList<Video> {
-        return videos
+        return storage.getContent()
     }
 
     override fun loadVideosToType(videos: MutableList<Video>) {
         musicVideos = videos.filter { it.videoType == VideoType.MUSIC }.map { it as MusicVideo }.toMutableList()
         newsVideos = videos.filter { it.videoType == VideoType.NEWS }.toMutableList()
+        customTypeVideos = videos.filter { it.videoType == VideoType.CUSTOM}.toMutableList()
     }
 
     override fun getVideosByType(videoType: VideoType): MutableList<out Video> {
         return when (videoType) {
             VideoType.MUSIC -> musicVideos
             VideoType.NEWS -> newsVideos
+            VideoType.CUSTOM -> customTypeVideos.filter { it.customTypeName == videoType }.toMutableList()
             else -> mutableListOf()
         }
     }
 
-    private fun deleteFromTypeList(video: Video?, videoType: VideoType) {
+    private fun deleteFromTypeList(id: String, videoType: VideoType, customType: String) {
         when (videoType) {
             VideoType.MUSIC -> musicVideos.remove(video)
             VideoType.NEWS -> newsVideos.remove(video)
@@ -46,6 +46,7 @@ open class VideoManager private constructor(
             VideoType.DOC,
             VideoType.LIVE,
             VideoType.GAME -> TODO()
+            VideoType.CUSTOM ->  customTypeVideos.removeIf { it.id == id }
             else -> println("Error on deleting video from type list") //FIXME: throw exception?
         }
     }
@@ -60,10 +61,9 @@ open class VideoManager private constructor(
             VideoType.DOC,
             VideoType.LIVE,
             VideoType.GAME -> TODO()
-//            VideoType.CUSTOM -> customVideos.add(video)
+            VideoType.CUSTOM -> customTypeVideos.add(video)
             else -> println("Video type not found!") //FIXME: throw exception?
         }
-        return video
     }
 
     override fun addVideo() {
@@ -108,8 +108,9 @@ open class VideoManager private constructor(
 
     override fun updateVideo() {
         val newValues = formManager.updatedVideoValues
-        val video = videos.first { it.id == newValues["id"] }
+        val video = storage.videos.first { it.id == newValues["id"] }
         val previousType = video.videoType
+        val previousCustomType = video.customTypeName
 
         deleteFromTypeList(video, previousType) // delete video from previous type list
         video.apply {
@@ -120,7 +121,7 @@ open class VideoManager private constructor(
         assignToTypeList(video) // add video to new type list
 
         formManager.status = "Video updated!"
-        storage.setContent(videos)
+//        storage.setContent(videos)
     }
 
     // mocking
