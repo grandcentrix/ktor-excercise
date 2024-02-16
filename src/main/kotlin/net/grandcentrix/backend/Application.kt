@@ -17,8 +17,8 @@ fun main() {
     val saveVideos = true
 
     if (StorageManagerTypesFile.StorageManagerTypesFileInstance.getContent().isEmpty()) {
-        val videoTypes = VideoType.entries.dropLast(1)
-        val videoTypesName: MutableList<String> = videoTypes.map { it.name }.toMutableList()
+        val videoTypes = VideoType.entries.dropLast(1) // why?
+        val videoTypesName = videoTypes.map { it.name }
         StorageManagerTypesFile.StorageManagerTypesFileInstance.setContent(videoTypesName)
     }
 
@@ -35,6 +35,7 @@ fun main() {
         .start(wait = true)
 }
 
+// NEAT!
 fun Application.module() {
     configureSecurity()
     configureTemplating()

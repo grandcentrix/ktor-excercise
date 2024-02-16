@@ -2,13 +2,17 @@ package net.grandcentrix.backend.models;
 
 import net.grandcentrix.backend.models.CustomTypeVideo.Companion.customTypeVideos
 import net.grandcentrix.backend.models.FormManager.Companion.FormManagerInstance
-import net.grandcentrix.backend.models.MusicVideo.Companion.musicVideos
 import net.grandcentrix.backend.models.NewsVideo.Companion.newsVideos
 import net.grandcentrix.backend.models.StorageManagerMemory.Companion.StorageManagerMemoryInstance
 
-open class VideoManager(var storage: StorageManagerInterface<MutableList<Video>,MutableList<Video>>, val formManager: FormManager) : VideoManagerInterface {
+open class VideoManager private constructor(
+    private var storage: StorageManagerInterface<MutableList<Video>,MutableList<Video>>,
+    private val formManager: FormManager
+) : VideoManagerInterface {
+
     companion object {
         val VideoManagerInstance: VideoManager = VideoManager(StorageManagerMemoryInstance, FormManagerInstance)
+        private var musicVideos = mutableListOf<MusicVideo>()
     }
 
     override fun defineStorage(storageType: StorageManagerInterface<MutableList<Video>,MutableList<Video>>) {
@@ -20,26 +24,15 @@ open class VideoManager(var storage: StorageManagerInterface<MutableList<Video>,
     }
 
     override fun loadVideosToType(videos: MutableList<Video>) {
-        musicVideos = videos.filter { it.videoType == VideoType.MUSIC }.toMutableList()
+        musicVideos = videos.filter { it.videoType == VideoType.MUSIC }.map { it as MusicVideo }.toMutableList()
         newsVideos = videos.filter { it.videoType == VideoType.NEWS }.toMutableList()
-//        gameVideos = videos.filter { it.videoType == VideoType.GAME }.toMutableList()
-//        eduVideos = videos.filter { it.videoType == VideoType.EDU }.toMutableList()
-//        docVideos = videos.filter { it.videoType == VideoType.DOC }.toMutableList()
-//        liveVideos = videos.filter { it.videoType == VideoType.LIVE }.toMutableList()
-
         customTypeVideos = videos.filter { it.videoType == VideoType.CUSTOM}.toMutableList()
-        print(customTypeVideos)
     }
 
-    override fun getVideosByType(videoType: String): MutableList<Video> {
-        val assignedType = assignType(videoType)
-        return when (assignedType) {
+    override fun getVideosByType(videoType: VideoType): MutableList<out Video> {
+        return when (videoType) {
             VideoType.MUSIC -> musicVideos
             VideoType.NEWS -> newsVideos
-    //            VideoType.DOC -> return docVideos
-    //            VideoType.EDU -> return eduVideos
-    //            VideoType.GAME -> return gameVideos
-    //            VideoType.LIVE -> return liveVideos
             VideoType.CUSTOM -> customTypeVideos.filter { it.customTypeName == videoType }.toMutableList()
             else -> mutableListOf()
         }
@@ -47,70 +40,70 @@ open class VideoManager(var storage: StorageManagerInterface<MutableList<Video>,
 
     private fun deleteFromTypeList(id: String, videoType: VideoType, customType: String) {
         when (videoType) {
-            VideoType.MUSIC -> musicVideos.removeIf { it.id == id }
-            VideoType.NEWS -> newsVideos.removeIf { it.id == id }
-//            VideoType.GAME -> gameVideos.removeIf { it.id == id }
-//            VideoType.EDU -> eduVideos.removeIf { it.id == id }
-//            VideoType.DOC -> docVideos.removeIf { it.id == id }
-//            VideoType.LIVE -> liveVideos.removeIf { it.id == id }
+            VideoType.MUSIC -> musicVideos.remove(video)
+            VideoType.NEWS -> newsVideos.remove(video)
+            VideoType.EDU,
+            VideoType.DOC,
+            VideoType.LIVE,
+            VideoType.GAME -> TODO()
             VideoType.CUSTOM ->  customTypeVideos.removeIf { it.id == id }
-            else -> println("Error on deleting video from type list")
+            else -> println("Error on deleting video from type list") //FIXME: throw exception?
         }
-        print(customTypeVideos)
     }
 
-    override fun findVideo(id: String): Video? {
-        val video = storage.videos.find { it.id == id }
-        return video
-    }
+    override fun findVideo(id: String): Video? = videos.find { it.id == id }
 
     private fun assignToTypeList(video: Video): Video {
         when (video.videoType) {
-            VideoType.MUSIC -> musicVideos.add(video)
+            VideoType.MUSIC -> musicVideos.add(video as MusicVideo)
             VideoType.NEWS -> newsVideos.add(video)
-//            VideoType.GAME -> TODO()
-//            VideoType.EDU -> TODO()
-//            VideoType.DOC -> TODO()
-//            VideoType.LIVE -> TODO()
+            VideoType.EDU,
+            VideoType.DOC,
+            VideoType.LIVE,
+            VideoType.GAME -> TODO()
             VideoType.CUSTOM -> customTypeVideos.add(video)
-            else -> println("Video type not found!")
+            else -> println("Video type not found!") //FIXME: throw exception?
         }
-        print(customTypeVideos)
-        return video
     }
 
     override fun addVideo() {
         val video = formManager.video
-        if (findVideo(video.id) == null) {
-            storage.setEntry(video)
-            assignToTypeList(video)
-            formManager.status = "Video added!"
-        } else {
+        if (findVideo(video.id) != null) {
             formManager.status = "Video already exists!"
+            return
         }
+        videos.add(video)
+        assignToTypeList(video)
+        storage.setContent(videos)
+        formManager.status = "Video added!"
     }
 
     override fun deleteVideo(id: String) {
-        if (storage.videos.size > 1) {
-            val video = findVideo(id)
-
-            // delete video from the lists
-            if (video !== null) {
-                deleteFromTypeList(video.id, video.videoType, video.customTypeName)
-                storage.removeEntry(video)
-            } else {
-                formManager.status = "Video not found!"
-            }
-
-            // check if video is deleted
-            if (findVideo(id) == null) {
-                formManager.status = "Video deleted!"
-            } else {
-                formManager.status = "Oops, there was some problem while deleting!"
-            }
-        } else {
-            formManager.status = "The list cannot be empty!"
+        val video = findVideo(id)
+        if (!inputIsValid(id)) {
+            return
         }
+
+        // delete video from the lists
+        deleteFromTypeList(video, video!!.videoType)
+        videos.remove(video)
+
+        // check if video is deleted
+        // FIXME is this needed? if there was a problem an exception would be raised
+    }
+
+    private fun inputIsValid (id: String): Boolean {
+        if (videos.size <= 1) {
+            formManager.status = "The list cannot be empty!"
+            return false
+        }
+
+        val video = findVideo(id)
+        if (video === null) {
+            formManager.status = "Video not found!"
+            return false
+        }
+        return true
     }
 
     override fun updateVideo() {
@@ -119,13 +112,12 @@ open class VideoManager(var storage: StorageManagerInterface<MutableList<Video>,
         val previousType = video.videoType
         val previousCustomType = video.customTypeName
 
-        deleteFromTypeList(video.id, previousType, previousCustomType) // delete video from previous type list
-        if (newValues["newTitle"].toString().isNotBlank()) {
-            video.title = newValues["newTitle"].toString()
+        deleteFromTypeList(video, previousType) // delete video from previous type list
+        video.apply {
+            title = newValues["newTitle"].toString()
+            videoType = newValues["newType"] as VideoType
+            customTypeName = newValues["newCustomTypeName"].toString()
         }
-        video.videoType = newValues["newType"] as VideoType
-        video.customTypeName = newValues["newCustomTypeName"].toString()
-        storage.updateStorage()
         assignToTypeList(video) // add video to new type list
 
         formManager.status = "Video updated!"
@@ -133,28 +125,17 @@ open class VideoManager(var storage: StorageManagerInterface<MutableList<Video>,
     }
 
     // mocking
-    override fun shuffle(): String {
-        val idArray = mutableListOf<String>()
-        for (video in storage.getContent()) {
-            val id = video.id
-            idArray.add(id)
-        }
-        val randomId = idArray.random()
-        return randomId
-    }
+    override fun shuffle(): String  = videos.map { it.id }.random()
 
-    override fun shuffleByType(videoType: String): String {
-//        val assignedType = assignType(videoType)
-        val idArray = mutableListOf<String>()
-        val videosList = getVideosByType(videoType)
-
-        for (video in videosList) {
-            val id = video.id
-            idArray.add(id)
-        }
-        val randomId = idArray.random()
-        return randomId
-    }
-
-
+    override fun shuffleByType(videoType: VideoType): String = when (videoType) {
+        VideoType.MUSIC -> musicVideos
+        VideoType.NEWS -> newsVideos
+        //            VideoType.DOC -> videosList = docVideos
+        //            VideoType.EDU -> videosList = eduVideos
+        //            VideoType.GAME -> videosList = gameVideos
+        //            VideoType.LIVE -> videosList = liveVideos
+        else -> videos
+    }.map {
+        it.id
+    }.random()
 }

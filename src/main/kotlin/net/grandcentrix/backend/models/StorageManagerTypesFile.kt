@@ -4,28 +4,24 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import java.io.File
 
-open class StorageManagerTypesFile(): StorageManagerInterface<MutableList<String>,MutableList<String>> {
+open class StorageManagerTypesFile: StorageManagerInterface<List<String>,List<String>> {
     companion object {
         val StorageManagerTypesFileInstance: StorageManagerTypesFile = StorageManagerTypesFile()
+        private const val FILE_NAME = "src/main/resources/videoTypes.json"
     }
 
-    private fun getFile(): File {
-        val fileName = "src/main/resources/videoTypes.json"
-        val file = File(fileName)
-        return file
-    }
+    private fun getFile() = File(FILE_NAME)
 
-    override fun getContent(): MutableList<String> {
+    override fun getContent(): List<String> {
         val fileText = getFile().readText()
-        if (fileText != "[]") {
-            val videoTypes = Json.decodeFromString<MutableList<String>>(fileText)
-            return videoTypes
+        if (fileText == "[]") {
+            return emptyList()
         }
-        return mutableListOf()
+        return Json.decodeFromString<List<String>>(fileText)
     }
 
-    override fun setContent(list: MutableList<String>) {
-        val videoTypes = Json.encodeToJsonElement(list).toString()
+    override fun setContent(item: List<String>) {
+        val videoTypes = Json.encodeToJsonElement(item).toString()
         getFile().writeText(videoTypes)
     }
 
