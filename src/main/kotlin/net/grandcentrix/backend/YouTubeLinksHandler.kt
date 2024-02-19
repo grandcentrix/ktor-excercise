@@ -1,10 +1,8 @@
 package net.grandcentrix.backend
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
 import java.io.File
 import java.lang.Thread.sleep
 
@@ -16,7 +14,7 @@ interface YouTubeManagerInterface {
     fun renameVideo(videoId: String, newCustomName: String): Boolean
     fun saveYouTubeLinks()
     fun addVideoToPlaylist(videoId: String, customName: String?, playlistName: String)
-    fun removeVideo(videoId: String): Boolean
+    fun removeVideo(videoIndex: Int): Boolean
 }
 
 @Serializable
@@ -52,7 +50,6 @@ class JsonYouTubeManagerObjectClass private constructor(private val playlistMana
         val playlist = playlists.find { it.name == playlistName }
 
         if (playlist != null) {
-            // Add the video to the playlist
             playlist.videos.add(VideoInfo(videoId, customName ?: ""))
             playlistManager.savePlaylists()
         } else {
@@ -62,21 +59,17 @@ class JsonYouTubeManagerObjectClass private constructor(private val playlistMana
 
 
 
+    override fun removeVideo(videoIndex: Int): Boolean {
+        val currentPlaylist = playlistManager.getCurrentPlaylist()
 
-
-    override fun removeVideo(videoId: String): Boolean {
-        val video = youtubeLinks.find { it.videoId == videoId }
-        return if (video != null) {
-            youtubeLinks.remove(video)
-            saveYouTubeLinks()
+        return if (currentPlaylist != null && videoIndex >= 0 && videoIndex < currentPlaylist.videos.size) {
+            val removedVideo = currentPlaylist.videos.removeAt(videoIndex)
+            playlistManager.savePlaylists()
             true
         } else {
             false
         }
     }
-
-
-
 
     override fun addVideos(videoId: String, customName: String) {
         youtubeLinks.add(VideoInfo(videoId, customName))
@@ -142,16 +135,18 @@ class InMemoryYouTubeManagerClass private constructor(private val playlistManage
         return "https://www.youtube.com/embed/$videoId"
     }
 
-    override fun removeVideo(videoId: String): Boolean {
-        val video = youtubeLinks.find { it.videoId == videoId }
-        return if (video != null) {
-            youtubeLinks.remove(video)
-            saveYouTubeLinks()
+    override fun removeVideo(videoIndex: Int): Boolean {
+        val currentPlaylist = playlistManager.getCurrentPlaylist()
+
+        return if (currentPlaylist != null && videoIndex >= 0 && videoIndex < currentPlaylist.videos.size) {
+            val removedVideo = currentPlaylist.videos.removeAt(videoIndex)
+            playlistManager.savePlaylists()
             true
         } else {
             false
         }
     }
+
 
     override fun addVideos(videoId: String, customName: String) {
         youtubeLinks.add(VideoInfo(videoId, customName))
@@ -264,7 +259,7 @@ class PlaylistManager {
             val playlistFile = File("$playlistName.json")
             if (playlistFile.exists()) {
                 // Delete the playlist file from the file system
-                playlistFile.delete() // Hier wird die Datei gelöscht
+                playlistFile.delete()
                 // Remove the playlist from the in-memory list
                 playlists.remove(playlist)
                 // Save the updated playlists immediately
@@ -325,3 +320,5 @@ class PlaylistManager {
         playlists.addAll(loadedPlaylists)
     }
 }
+
+

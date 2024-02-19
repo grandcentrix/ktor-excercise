@@ -92,24 +92,26 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                             }
 
 
-                            // "Remove Selected Video" form placed under "Your Playlist"
                             form(action = "/removeVideo", method = FormMethod.post) {
-                                select {
-                                    id = "playlistSelectToRemove"
-                                    name = "videoIdToRemove"
-                                    playlistManager.getAllPlaylists().forEach { playlist ->
-                                        playlist.videos.forEach { videoInfo ->
+                                val currentPlaylist = playlistManager.getCurrentPlaylist()
+                                if (currentPlaylist != null) {
+                                    select {
+                                        name = "videoIndexToRemove"
+                                        currentPlaylist.videos.forEachIndexed { index, videoInfo ->
                                             option {
-                                                value = videoInfo.videoId
+                                                value = index.toString() // Index als Wert setzen
                                                 +if (videoInfo.customName.isNotEmpty()) videoInfo.customName else videoInfo.videoId
                                             }
                                         }
                                     }
-                                }
-                                submitInput {
-                                    value = "Remove Selected Video"
+                                    submitInput {
+                                        value = "Remove Selected Video"
+                                    }
                                 }
                             }
+
+
+
                         }
                     }
 
@@ -231,10 +233,6 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
 
             if (videoId != null && playlistName != null && playlistName.isNotBlank()) {
                 try {
-                    // Add a delay to simulate loading time
-                    delay(1000)
-
-                    // Add the video to the selected playlist
                     youtubeManager.addVideoToPlaylist(videoId, customName, playlistName)
                     call.respondRedirect("/")
                 } catch (e: IllegalArgumentException) {
@@ -247,6 +245,7 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                 call.respond(HttpStatusCode.BadRequest, "Invalid request parameters")
             }
         }
+
 
 
 
@@ -345,20 +344,36 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
         }
 
 
+
         post("/removeVideo") {
             val parameters = call.receiveParameters()
-            val videoIdToRemove = parameters["videoIdToRemove"]
+            val videoIndexToRemove = parameters["videoIndexToRemove"]?.toIntOrNull()
 
-            if (!videoIdToRemove.isNullOrBlank()) {
-                if (youtubeManager.removeVideo(videoIdToRemove)) {
+            val currentPlaylist = playlistManager.getCurrentPlaylist()
+
+            if (currentPlaylist != null && videoIndexToRemove != null) {
+                if (videoIndexToRemove >= 0 && videoIndexToRemove < currentPlaylist.videos.size) {
+                    val removedVideo = currentPlaylist.videos.removeAt(videoIndexToRemove)
+                    playlistManager.savePlaylists()
                     call.respondRedirect("/")
                 } else {
-                    call.respond(HttpStatusCode.BadRequest, "Video not found in the playlist")
+                    call.respond(HttpStatusCode.BadRequest, "Invalid video index: $videoIndexToRemove")
                 }
             } else {
-                call.respond(HttpStatusCode.BadRequest, "Invalid video ID")
+                call.respond(HttpStatusCode.BadRequest, "Invalid parameters or no current playlist")
             }
         }
+
+
+
+
+
+
+
+
+
+
+
         get("/userPlaylistPage") {
             val currentPlaylist = playlistManager.getCurrentPlaylist()
             playlistManager.loadPlaylists()
