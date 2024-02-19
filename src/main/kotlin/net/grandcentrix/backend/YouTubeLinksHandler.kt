@@ -46,14 +46,11 @@ class JsonYouTubeManagerObjectClass private constructor(private val playlistMana
     }
 
     override fun addVideoToPlaylist(videoId: String, customName: String?, playlistName: String) {
-        // Attempt to create the playlist if it doesn't exist
-        try {
-            playlistManager.createPlaylist(playlistName)
-        } catch (e: IllegalArgumentException) {
-            // Playlist already exists, continue
-        }
+        playlistManager.loadPlaylists()
+
         val playlists = playlistManager.getAllPlaylists()
         val playlist = playlists.find { it.name == playlistName }
+
         if (playlist != null) {
             // Add the video to the playlist
             playlist.videos.add(VideoInfo(videoId, customName ?: ""))
@@ -62,6 +59,9 @@ class JsonYouTubeManagerObjectClass private constructor(private val playlistMana
             throw IllegalArgumentException("Playlist '$playlistName' not found.")
         }
     }
+
+
+
 
 
     override fun removeVideo(videoId: String): Boolean {
@@ -160,20 +160,11 @@ class InMemoryYouTubeManagerClass private constructor(private val playlistManage
 
 
     override fun addVideoToPlaylist(videoId: String, customName: String?, playlistName: String) {
-        // Attempt to create the playlist if it doesn't exist
-        try {
-            playlistManager.createPlaylist(playlistName)
-        } catch (e: IllegalArgumentException) {
-            // Playlist already exists, continue
-        }
+        playlistManager.loadPlaylists()
 
-        // Print available playlists for debugging
         val playlists = playlistManager.getAllPlaylists()
-        println("Available playlists:")
-        playlists.forEach { println(it.name) }
-
-        // Find the playlist to add the video to
         val playlist = playlists.find { it.name == playlistName }
+
         if (playlist != null) {
             // Add the video to the playlist
             playlist.videos.add(VideoInfo(videoId, customName ?: ""))
@@ -273,7 +264,7 @@ class PlaylistManager {
             val playlistFile = File("$playlistName.json")
             if (playlistFile.exists()) {
                 // Delete the playlist file from the file system
-                playlistFile.delete()
+                playlistFile.delete() // Hier wird die Datei gelöscht
                 // Remove the playlist from the in-memory list
                 playlists.remove(playlist)
                 // Save the updated playlists immediately
@@ -318,10 +309,14 @@ class PlaylistManager {
         println("Loading playlists:")
         for (file in playlistFiles) {
             try {
-                val jsonContent = file.readText()
-                val playlist = json.decodeFromString<Playlist>(jsonContent)
-                loadedPlaylists.add(playlist)
-                println("Playlist '${playlist.name}' loaded successfully from ${file.name}")
+                if (file.exists()) { // Überprüfen, ob die Datei existiert
+                    val jsonContent = file.readText()
+                    val playlist = json.decodeFromString<Playlist>(jsonContent)
+                    loadedPlaylists.add(playlist)
+                    println("Playlist '${playlist.name}' loaded successfully from ${file.name}")
+                } else {
+                    println("Playlist file '${file.name}' does not exist.")
+                }
             } catch (e: Exception) {
                 println("Failed to load playlist from ${file.name}: ${e.message}")
             }
