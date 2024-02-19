@@ -10,13 +10,11 @@ fun Application.module(persistLinks: Boolean) {
 }
 
 
-
-fun getYouTubeManager(persistLinks: Boolean): YouTubeManagerInterface {
-    return if (persistLinks) {
-        val jsonManager = JsonYouTubeManagerObjectClass.JsonYouTubeManagerObjectInstance
-        jsonManager.loadYouTubeLinks()
-        jsonManager
-    } else {
-        InMemoryYouTubeManagerClass.inMemoryYouTubeManagerInstance
+// very nice the return if!
+fun getYouTubeManager(persistLinks: Boolean): YouTubeManagerInterface = if (persistLinks) {
+    JsonYouTubeManagerObjectClass.JsonYouTubeManagerObjectInstance.apply {
+        loadYouTubeLinks()
     }
+} else {
+    InMemoryYouTubeManagerClass.inMemoryYouTubeManagerInstance
 }
