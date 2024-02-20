@@ -23,25 +23,6 @@ open class VideoManager private constructor(
         return storage.getContent()
     }
 
-    protected fun Video.toMusicVideo(): MusicVideo? {
-        if (this.videoType != VideoType.MUSIC) {
-            return null
-        }
-        return MusicVideo(this.id, this.title, this.link, this.videoType, this.customTypeName)
-    }
-    protected fun Video.toNewsVideo(): NewsVideo? {
-        if (this.videoType != VideoType.NEWS) {
-            return null
-        }
-        return NewsVideo(this.id, this.title, this.link, this.videoType, this.customTypeName)
-    }
-    protected fun Video.toCustomVideo(): CustomTypeVideo? {
-        if (this.videoType != VideoType.CUSTOM) {
-            return null
-        }
-        return CustomTypeVideo(this.id, this.title, this.link, this.videoType, this.customTypeName)
-    }
-
     protected fun Video.toType() = when (this.videoType) {
         VideoType.MUSIC -> MusicVideo(this.id, this.title, this.link, this.videoType, this.customTypeName)
         VideoType.NEWS -> NewsVideo(this.id, this.title, this.link, this.videoType, this.customTypeName)
@@ -50,9 +31,9 @@ open class VideoManager private constructor(
     }
 
     override fun loadVideosToType(videos: MutableList<Video>) {
-        musicVideos = videos.filter { it.videoType == VideoType.MUSIC }.map { it.toMusicVideo()!! }.toMutableList()
-        newsVideos = videos.filter { it.videoType == VideoType.NEWS }.map { it.toNewsVideo()!! }.toMutableList()
-        customTypeVideos = videos.filter { it.videoType == VideoType.CUSTOM }.map { it.toCustomVideo()!! }.toMutableList()
+        musicVideos = videos.filter { it.videoType == VideoType.MUSIC }.mapNotNull { it.toType() as? MusicVideo }.toMutableList()
+        newsVideos = videos.filter { it.videoType == VideoType.NEWS }.mapNotNull { it.toType() as? NewsVideo }.toMutableList()
+        customTypeVideos = videos.filter { it.videoType == VideoType.CUSTOM }.mapNotNull { it.toType() as? CustomTypeVideo }.toMutableList()
     }
 
     override fun getVideosByType(videoType: String): MutableList<out Video> {
