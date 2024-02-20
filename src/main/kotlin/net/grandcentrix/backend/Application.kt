@@ -17,9 +17,9 @@ fun main() {
     val saveVideos = true
 
     if (StorageManagerTypesFile.StorageManagerTypesFileInstance.getContent().isEmpty()) {
-        val videoTypes = VideoType.entries.dropLast(1) // why?
-        val videoTypesName = videoTypes.map { it.name }
-        StorageManagerTypesFile.StorageManagerTypesFileInstance.setContent(videoTypesName)
+        val videoTypeNames = VideoType.entries.map { it.name }
+//        val videoTypesName = videoTypes.map { it.name }
+        StorageManagerTypesFile.StorageManagerTypesFileInstance.setContent(videoTypeNames)
     }
 
     if (saveVideos) {

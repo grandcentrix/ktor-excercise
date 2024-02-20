@@ -15,11 +15,16 @@ class FormManager() {
     private var formActionType = FormActionType.ADD.name
     var formAttributes = mutableMapOf("name" to actionTitle, "link" to formAction, "type" to formActionType)
 
-    var video = Video("","","",VideoType.CUSTOM)
-    val videoTypes = StorageManagerTypesFileInstance.getContent()
+    var video = Video("","","",VideoType.CUSTOM, "")
+    val videoTypes = StorageManagerTypesFileInstance.getContent().toMutableList()
     var status = String()
     var updatedVideoValues = mutableMapOf<String,Any>()
-    private var youtubeUrls = listOf("https://www.youtube.com/watch?v=", "https://youtube.com/watch?v=", "youtube.com/watch?v=", "www.youtube.com/watch?v=")
+    private var youtubeUrls = listOf(
+        "https://www.youtube.com/watch?v=",
+        "https://youtube.com/watch?v=",
+        "youtube.com/watch?v=",
+        "www.youtube.com/watch?v="
+    )
 
     private fun getFormTitle(actionName: FormActionType): String {
         when (actionName) {
@@ -54,58 +59,96 @@ class FormManager() {
         }
     }
 
-    fun setVideoParameters(formParameters: Parameters) {
-        val id = formParameters.getOrFail("link").substringAfter("v=").substringBefore("&")
-        val link = formParameters.getOrFail("link")
-        val title = formParameters.getOrFail("title")
-        val videoType = formParameters.getOrFail("videoTypes")
-        var customTypeName = formParameters.getOrFail("customType")
-
+    private fun videoParametersAreValid(id: String, title: String, link: String): Boolean {
         if (id.isBlank() || title.isBlank()) {
             status = "Video link and title cannot be blank!"
+            return false
         } else if (!
-            (link.startsWith(youtubeUrls[0]) || link.startsWith(youtubeUrls[1]) || link.startsWith(youtubeUrls[2]) || link.startsWith(youtubeUrls[3]))
-            )
-        {
+            (link.startsWith(youtubeUrls[0]) ||
+            link.startsWith(youtubeUrls[1]) ||
+            link.startsWith(youtubeUrls[2]) ||
+            link.startsWith(youtubeUrls[3]))
+        ) {
             status = "Video link is not supported!"
-        } else {
-            val assignedType = assignType(videoType)
-            if (customTypeName.isNotBlank() && assignedType == VideoType.CUSTOM){
-                videoTypes.add(customTypeName)
-                StorageManagerTypesFileInstance.setContent(videoTypes)
-            } else if (assignedType == VideoType.CUSTOM) {
-                customTypeName = videoType
-            }
-            video = Video(id, title, link, assignedType, customTypeName)
+            return false
         }
+        return true
     }
 
-    fun setUpdatedVideoParameters(id: String, formParameters: Parameters) {
-        val newTitle = formParameters.getOrFail("title")
-        val newType = formParameters.getOrFail("videoTypes")
-        val customTypeName = formParameters.getOrFail("customType")
-        val assignedType = assignType(newType)
+    fun setVideoParameters(formParameters: Parameters) {
+        val id = formParameters.getOrFail("link")
+            .substringAfter("v=").substringBefore("&")
+        val link = formParameters.getOrFail("link")
+        val title = formParameters.getOrFail("title")
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+        val videoType = formParameters.getOrFail("videoTypes")
+        var customTypeName = formParameters.getOrFail("customType").uppercase()
+        val assignedType = assignType(videoType)
 
-        updatedVideoValues.apply {
-                put("id", id)
-                put("newTitle", newTitle)
-                put("newType", assignedType)
-                put("newCustomTypeName", customTypeName)
-        }
-
-        if (customTypeName.isNotBlank() && assignedType == VideoType.CUSTOM) {
+        if (!videoParametersAreValid(id, title, link))  {
+            return
+        } else if (customTypeName.isNotBlank() && assignedType == VideoType.CUSTOM){
             videoTypes.add(customTypeName)
             StorageManagerTypesFileInstance.setContent(videoTypes)
         } else if (assignedType == VideoType.CUSTOM) {
-            updatedVideoValues.apply {
-                put("newCustomTypeName", newType)
-            }
+            customTypeName = videoType
         }
 
+        video = Video(id, title, link, assignedType, customTypeName)
+    }
+
+    fun setUpdatedVideoParameters(id: String, formParameters: Parameters) {
+        val newTitle = formParameters.getOrFail("title").replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase() else it.toString()
+        }
+        val newType = formParameters.getOrFail("videoTypes")
+        val customTypeName = formParameters.getOrFail("customType").uppercase()
+        val assignedType = assignType(newType)
+
+        updatedVideoValues.apply {
+            put("id", id)
+            put("newType", assignedType)
+        }
+
+        setUpdatedValues(newType, customTypeName, assignedType, newTitle)
         revertForm()
     }
 
-     fun updateFormAction(id: String, video: Video) {
+    private fun setUpdatedValues(
+        newType: String,
+        customTypeName: String,
+        assignedType: VideoType,
+        newTitle: String
+    ) {
+        if (newType == VideoType.CUSTOM.name) {
+            if (customTypeName.isBlank()) {
+                status = "Custom type name cannot be blank!"
+                return
+            } else {
+                updatedVideoValues.apply {
+                    put("newCustomTypeName", customTypeName)
+                }
+                videoTypes.add(customTypeName)
+                StorageManagerTypesFileInstance.setContent(videoTypes)
+            }
+        } // check if the user selected a custom type (not custom itself)
+        else {
+            if (assignedType == VideoType.CUSTOM) {
+                updatedVideoValues.apply {
+                    put("newCustomTypeName", newType)
+                }
+            }
+        }
+
+        if (newTitle.isNotBlank()) {
+            updatedVideoValues.apply {
+                put("newTitle", newTitle)
+            }
+        }
+
+    }
+
+    fun updateFormAction(id: String, video: Video) {
          actionTitle = getFormTitle(FormActionType.UPDATE)
          formAction = getFormAction(FormActionType.UPDATE, id)
          formActionType = FormActionType.UPDATE.name

@@ -47,7 +47,7 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
             }
 
             get("/{videoType}/videos") {
-                val videoType = call.parameters.getOrFail<VideoType>("videoType")
+                val videoType = call.parameters.getOrFail("videoType")
                 call.respond(FreeMarkerContent("videosByType.ftl",
                     mapOf(
                         "videos" to videoManager.getVideosByType(videoType),

@@ -1,8 +1,10 @@
 package net.grandcentrix.backend.models
 
-data class MusicVideo(
+
+data class MusicVideo (
     override val id: String,
     override var title: String,
     override val link: String,
-    override var videoType: VideoType = VideoType.MUSIC
-): Video(id, title, link, VideoType.MUSIC)
+    override var videoType: VideoType,
+    override var customTypeName: String
+): Video(id, title, link, videoType, customTypeName)

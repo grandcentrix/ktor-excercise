@@ -4,6 +4,7 @@ enum class VideoType {
     MUSIC, NEWS, GAME, EDU, DOC, LIVE, CUSTOM;
 }
 
+
 fun assignType(videoType: String): VideoType {
     return when (videoType) {
         "MUSIC" -> VideoType.MUSIC
