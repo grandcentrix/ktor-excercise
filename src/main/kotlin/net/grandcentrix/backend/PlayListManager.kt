@@ -57,7 +57,8 @@ class PlaylistManager {
     }
 
     fun renamePlaylist(oldName: String, newName: String) {
-        val playlist = playlists.find { it.name == oldName } ?: throw IllegalArgumentException("Playlist with name '$oldName' not found.")
+        val playlist = playlists.find { it.name == oldName } ?:
+        throw IllegalArgumentException("Playlist with name '$oldName' not found.")
         playlist.name = newName
         savePlaylists()
     }

@@ -1,9 +1,9 @@
 package net.grandcentrix.backend
 
 import org.junit.Assert
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
-class YouTubeManagerTest {
+public class YouTubeManagerTest {
 
     @Test
     fun testJsonYouTubeManager() {
@@ -65,5 +65,4 @@ class YouTubeManagerTest {
         Assert.assertEquals(0, youtubeManager.getYoutubeLinks().size)
     }
 }
-
 

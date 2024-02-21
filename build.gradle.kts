@@ -30,11 +30,8 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
     implementation ("org.apache.commons:commons-csv:1.10.0")
     implementation("junit:junit:4.13.1")
-    implementation("junit:junit:4.13.1")
     testImplementation("io.ktor:ktor-server-tests:$ktor_version")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-    testImplementation(kotlin("test"))
-
+    testImplementation("com.willowtreeapps.assertk:assertk:0.28.0")
     testImplementation(kotlin("test"))
 }
 

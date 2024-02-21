@@ -1,6 +1,7 @@
 package net.grandcentrix.backend
 
-class InMemoryYouTubeManagerClass private constructor(private val playlistManager: PlaylistManager) : YouTubeManagerInterface {
+class InMemoryYouTubeManagerClass private constructor(private val playlistManager: PlaylistManager) :
+    YouTubeManagerInterface {
     companion object {
         val inMemoryYouTubeManagerInstance: InMemoryYouTubeManagerClass = InMemoryYouTubeManagerClass(PlaylistManager())
     }

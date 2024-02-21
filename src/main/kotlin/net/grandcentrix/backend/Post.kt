@@ -15,226 +15,232 @@ import java.net.URL
 
 fun Application.configurePostRoutes(youtubeManager: YouTubeManagerInterface, playlistManager: PlaylistManager) {
     routing {
-        post("/addVideoToPlaylist") {
-            val parameters = call.receiveParameters()
-            val videoId = parameters["videoId"]
-            val customName = parameters["customName"]
-            val playlistName = parameters["playlistName"]
+        addVideoToPlaylist(youtubeManager)
+        addVideo(youtubeManager)
+        addVideos(youtubeManager)
+        deleteVideoByNumber(youtubeManager)
+        renameVideoByNumber(youtubeManager)
+        removeVideo(playlistManager)
+        userPlaylistPage(playlistManager)
+        switchPlaylist(playlistManager)
+        createPlaylist(playlistManager)
+        deletePlaylist(playlistManager)
+    }
+}
 
-            println("Received parameters: videoId=$videoId, customName=$customName, playlistName=$playlistName")
+private fun Routing.deletePlaylist(playlistManager: PlaylistManager) {
+    post("/deletePlaylist") {
+        val parameters = call.receiveParameters()
+        val playlistNameToDelete = parameters["playlistNameToDelete"]
 
-            if (videoId != null && playlistName != null && playlistName.isNotBlank()) {
-                try {
-                    youtubeManager.addVideoToPlaylist(videoId, customName, playlistName)
-                    call.respondRedirect("/")
-                } catch (e: IllegalArgumentException) {
-                    call.respond(HttpStatusCode.BadRequest, "Error adding video to playlist: ${e.message}")
-                } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, "Internal server error: ${e.message}")
-                    call.application.log.error("Error adding video to playlist", e)
-                }
-            } else {
-                call.respond(HttpStatusCode.BadRequest, "Invalid request parameters")
-            }
-        }
-
-
-
-
-        post("/addVideo") {
-            val parameters = call.receiveParameters()
-            val newVideoUrl = parameters["newVideoUrl"]
-            val customName = parameters["customName"] ?: ""
-            val playlistName = parameters["playlistName"] ?: "" // Extract playlistName parameter
-
-            if (!newVideoUrl.isNullOrBlank()) {
-                val url = URL(newVideoUrl)
-                val host = url.host
-
-                if (host == "www.youtube.com" || host == "youtube.com") {
-                    val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
-
-                    if (!videoId.isNullOrBlank()) {
-                        try {
-                            youtubeManager.saveYouTubeLinks()
-                            call.respondRedirect("/")
-                        } catch (e: IllegalArgumentException) {
-                            call.respond(HttpStatusCode.BadRequest, e.message ?: "Error adding video to playlist")
-                        }
-                    } else {
-                        call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Video ID not found")
-                    }
-                } else {
-                    call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Host is not supported")
-                }
-            } else {
-                call.respond(HttpStatusCode.BadRequest, "URL is required")
-            }
-        }
-
-        post("/addVideos") {
-            val parameters = call.receiveParameters()
-            val newVideoUrl = parameters["newVideoUrl"]
-            val customName = parameters["customName"] ?: ""
-
-            if (!newVideoUrl.isNullOrBlank()) {
-                val url = URL(newVideoUrl)
-                val host = url.host
-
-                if (host == "www.youtube.com" || host == "youtube.com") {
-                    val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
-
-                    if (!videoId.isNullOrBlank()) {
-                        try {
-                            youtubeManager.addVideos(videoId, customName)
-                            youtubeManager.saveYouTubeLinks()
-                            call.respondRedirect("/")
-                        } catch (e: IllegalArgumentException) {
-                            call.respond(HttpStatusCode.BadRequest, e.message ?: "Error adding video")
-                        }
-                    } else {
-                        call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Video ID not found")
-                    }
-                } else {
-                    call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Host is not supported")
-                }
-            } else {
-                call.respond(HttpStatusCode.BadRequest, "URL is required")
-            }
-        }
-
-
-
-
-        post("/deleteVideoByNumber") {
-            val parameters = call.receiveParameters()
-            val videoNumberToDelete = parameters["videoNumberToDelete"]?.toIntOrNull()
-
-            if (videoNumberToDelete != null && videoNumberToDelete > 0 && videoNumberToDelete <= youtubeManager.getYoutubeLinks().size) {
-                val indexToDelete = videoNumberToDelete - 1
-                youtubeManager.removeVideoByNumber(indexToDelete)
+        if (playlistNameToDelete.isNullOrBlank()) {
+            call.respond(HttpStatusCode.BadRequest, "Invalid playlist name")
+        } else {
+            try {
+                // Delete the playlist by name
+                playlistManager.deletePlaylist(playlistNameToDelete)
                 call.respondRedirect("/")
-            } else {
-                call.respond(HttpStatusCode.BadRequest, "Invalid video number")
+            } catch (e: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, e.message ?: "Error deleting playlist")
             }
         }
+    }
+}
 
+private fun Routing.createPlaylist(playlistManager: PlaylistManager) {
+    post("/createPlaylist") {
+        val parameters = call.receiveParameters()
+        val playlistName = parameters["playlistName"] ?: return@post // Ensure playlist name is provided
 
-        post("/renameVideoByNumber") {
-            val parameters = call.receiveParameters()
-            val videoNumberToRename = parameters["videoNumberToRename"]?.toIntOrNull()
-            val newCustomName = parameters["newCustomName"]
-
-            if (videoNumberToRename != null && videoNumberToRename > 0 && videoNumberToRename <= youtubeManager.getYoutubeLinks().size && !newCustomName.isNullOrBlank()) {
-                val indexToRename = videoNumberToRename - 1
-                val videoInfo = youtubeManager.getYoutubeLinks()[indexToRename]
-                videoInfo.customName = newCustomName
-                call.respondRedirect("/")
-            } else {
-                call.respond(HttpStatusCode.BadRequest, "Invalid video number or new custom name")
-            }
+        try {
+            // Attempt to create the playlist with the provided custom name
+            playlistManager.createPlaylist(playlistName)
+            // No need to sleep here
+            call.respondRedirect("/")
+        } catch (e: IllegalArgumentException) {
+            call.respond(HttpStatusCode.BadRequest, e.message ?: "Error creating playlist")
         }
+    }
+}
 
+private fun Routing.switchPlaylist(playlistManager: PlaylistManager) {
+    post("/switchPlaylist") {
+        val parameters = call.receiveParameters()
+        val playlistName = parameters["playlistName"] ?: return@post
+        playlistManager.switchPlaylist(playlistName)
+        call.respondRedirect("/")
+    }
+}
 
+private fun Routing.userPlaylistPage(playlistManager: PlaylistManager) {
+    get("/userPlaylistPage") {
+        val currentPlaylist = playlistManager.getCurrentPlaylist()
+        playlistManager.loadPlaylists()
 
-        post("/removeVideo") {
-            val parameters = call.receiveParameters()
-            val videoIndexToRemove = parameters["videoIndexToRemove"]?.toIntOrNull()
-
-            val currentPlaylist = playlistManager.getCurrentPlaylist()
-
-            if (currentPlaylist != null && videoIndexToRemove != null) {
-                if (videoIndexToRemove >= 0 && videoIndexToRemove < currentPlaylist.videos.size) {
-                    val removedVideo = currentPlaylist.videos.removeAt(videoIndexToRemove)
-                    playlistManager.savePlaylists()
-                    call.respondRedirect("/")
-                } else {
-                    call.respond(HttpStatusCode.BadRequest, "Invalid video index: $videoIndexToRemove")
-                }
-            } else {
-                call.respond(HttpStatusCode.BadRequest, "Invalid parameters or no current playlist")
-            }
-        }
-
-
-
-
-
-
-
-
-
-
-
-        get("/userPlaylistPage") {
-            val currentPlaylist = playlistManager.getCurrentPlaylist()
-            playlistManager.loadPlaylists()
-
-            if (currentPlaylist != null) {
-                call.respondHtml {
-                    body {
-                        currentPlaylist.videos.forEach { videoInfo ->
-                            div {
-                                iframe {
-                                    width = "560"
-                                    height = "315"
-                                    src = "https://www.youtube.com/embed/${videoInfo.videoId}"
-                                    attributes["frameborder"] = "0"
-                                    attributes["fullscreen"] = "true"
-                                }
+        if (currentPlaylist == null) {
+            call.respond(HttpStatusCode.BadRequest, "No playlist selected")
+        } else {
+            call.respondHtml {
+                body {
+                    currentPlaylist.videos.forEach { videoInfo ->
+                        div {
+                            iframe {
+                                width = "560"
+                                height = "315"
+                                src = "https://www.youtube.com/embed/${videoInfo.videoId}"
+                                attributes["frameborder"] = "0"
+                                attributes["fullscreen"] = "true"
                             }
                         }
                     }
                 }
-            } else {
-                call.respond(HttpStatusCode.BadRequest, "No playlist selected")
             }
         }
+    }
+}
 
+private fun Routing.removeVideo(playlistManager: PlaylistManager) {
+    post("/removeVideo") {
+        val parameters = call.receiveParameters()
+        val videoIndexToRemove = parameters["videoIndexToRemove"]?.toIntOrNull()
 
+        val currentPlaylist = playlistManager.getCurrentPlaylist()
 
+        if (currentPlaylist == null || videoIndexToRemove == null) {
+            call.respond(HttpStatusCode.BadRequest, "Invalid parameters or no current playlist")
+        } else {
+            if (videoIndexToRemove < 0 || videoIndexToRemove >= currentPlaylist.videos.size) {
+                call.respond(HttpStatusCode.BadRequest, "Invalid video index: $videoIndexToRemove")
+            } else {
+                val removedVideo = currentPlaylist.videos.removeAt(videoIndexToRemove)
+                playlistManager.savePlaylists()
+                call.respondRedirect("/")
+            }
+        }
+    }
+}
 
+private fun Routing.renameVideoByNumber(youtubeManager: YouTubeManagerInterface) {
+    post("/renameVideoByNumber") {
+        val parameters = call.receiveParameters()
+        val videoNumberToRename = parameters["videoNumberToRename"]?.toIntOrNull()
+        val newCustomName = parameters["newCustomName"]
 
-
-        post("/switchPlaylist") {
-            val parameters = call.receiveParameters()
-            val playlistName = parameters["playlistName"] ?: return@post
-            playlistManager.switchPlaylist(playlistName)
+        if (videoNumberToRename == null || videoNumberToRename <= 0 ||
+            videoNumberToRename > youtubeManager.getYoutubeLinks().size || newCustomName.isNullOrBlank()) {
+            call.respond(HttpStatusCode.BadRequest, "Invalid video number or new custom name")
+        } else {
+            val indexToRename = videoNumberToRename - 1
+            val videoInfo = youtubeManager.getYoutubeLinks()[indexToRename]
+            videoInfo.customName = newCustomName
             call.respondRedirect("/")
         }
+    }
+}
 
+private fun Routing.deleteVideoByNumber(youtubeManager: YouTubeManagerInterface) {
+    post("/deleteVideoByNumber") {
+        val parameters = call.receiveParameters()
+        val videoNumberToDelete = parameters["videoNumberToDelete"]?.toIntOrNull()
 
-        post("/createPlaylist") {
-            val parameters = call.receiveParameters()
-            val playlistName = parameters["playlistName"] ?: return@post // Ensure playlist name is provided
+        if (videoNumberToDelete == null || videoNumberToDelete <= 0 ||
+            videoNumberToDelete > youtubeManager.getYoutubeLinks().size) {
+            call.respond(HttpStatusCode.BadRequest, "Invalid video number")
+        } else {
+            val indexToDelete = videoNumberToDelete - 1
+            youtubeManager.removeVideoByNumber(indexToDelete)
+            call.respondRedirect("/")
+        }
+    }
+}
 
-            try {
-                // Attempt to create the playlist with the provided custom name
-                playlistManager.createPlaylist(playlistName)
-                // No need to sleep here
-                call.respondRedirect("/")
-            } catch (e: IllegalArgumentException) {
-                call.respond(HttpStatusCode.BadRequest, e.message ?: "Error creating playlist")
+private fun Routing.addVideos(youtubeManager: YouTubeManagerInterface) {
+    post("/addVideos") {
+        val parameters = call.receiveParameters()
+        val newVideoUrl = parameters["newVideoUrl"]
+        val customName = parameters["customName"] ?: ""
+
+        if (newVideoUrl.isNullOrBlank()) {
+            call.respond(HttpStatusCode.BadRequest, "URL is required")
+        } else {
+            val url = URL(newVideoUrl)
+            val host = url.host
+
+            if (host != "www.youtube.com" && host != "youtube.com") {
+                call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Host is not supported")
+            } else {
+                val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
+
+                if (videoId.isNullOrBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Video ID not found")
+                } else {
+                    try {
+                        youtubeManager.addVideos(videoId, customName)
+                        youtubeManager.saveYouTubeLinks()
+                        call.respondRedirect("/")
+                    } catch (e: IllegalArgumentException) {
+                        call.respond(HttpStatusCode.BadRequest, e.message ?: "Error adding video")
+                    }
+                }
             }
         }
+    }
+}
 
+private fun Routing.addVideo(youtubeManager: YouTubeManagerInterface) {
+    post("/addVideo") {
+        val parameters = call.receiveParameters()
+        val newVideoUrl = parameters["newVideoUrl"]
+        val customName = parameters["customName"] ?: ""
+        val playlistName = parameters["playlistName"] ?: "" // Extract playlistName parameter
 
+        if (!newVideoUrl.isNullOrBlank()) {
+            val url = URL(newVideoUrl)
+            val host = url.host
 
-        post("/deletePlaylist") {
-            val parameters = call.receiveParameters()
-            val playlistNameToDelete = parameters["playlistNameToDelete"]
-
-            if (!playlistNameToDelete.isNullOrBlank()) {
-                try {
-                    // Delete the playlist by name
-                    playlistManager.deletePlaylist(playlistNameToDelete)
-                    call.respondRedirect("/")
-                } catch (e: IllegalArgumentException) {
-                    call.respond(HttpStatusCode.BadRequest, e.message ?: "Error deleting playlist")
-                }
+            if (host != "www.youtube.com" && host != "youtube.com") {
+                call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Host is not supported")
             } else {
-                call.respond(HttpStatusCode.BadRequest, "Invalid playlist name")
+                val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
+
+                if (videoId.isNullOrBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Video ID not found")
+                } else {
+                    try {
+                        youtubeManager.saveYouTubeLinks()
+                        call.respondRedirect("/")
+                    } catch (e: IllegalArgumentException) {
+                        call.respond(HttpStatusCode.BadRequest, e.message ?: "Error adding video to playlist")
+                    }
+                }
             }
+        } else {
+            call.respond(HttpStatusCode.BadRequest, "URL is required")
+        }
+    }
+}
+
+private fun Routing.addVideoToPlaylist(youtubeManager: YouTubeManagerInterface) {
+    post("/addVideoToPlaylist") {
+        val parameters = call.receiveParameters()
+        val videoId = parameters["videoId"]
+        val customName = parameters["customName"]
+        val playlistName = parameters["playlistName"]
+
+        println("Received parameters: videoId=$videoId, customName=$customName, playlistName=$playlistName")
+
+        if (videoId != null && playlistName != null && playlistName.isNotBlank()) {
+            try {
+                youtubeManager.addVideoToPlaylist(videoId, customName, playlistName)
+                call.respondRedirect("/")
+            } catch (e: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, "Error adding video to playlist: ${e.message}")
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, "Internal server error: ${e.message}")
+                call.application.log.error("Error adding video to playlist", e)
+            }
+        } else {
+            call.respond(HttpStatusCode.BadRequest, "Invalid request parameters")
         }
     }
 }
