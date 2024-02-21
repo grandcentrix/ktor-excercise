@@ -13,11 +13,12 @@ import kotlinx.html.*
 import java.net.URL
 
 
-fun Application.configurePostRoutes(youtubeManager: YouTubeManagerInterface, playlistManager: PlaylistManager) {
+
+fun Application.configurePostRoutes(youtubeManager: YouTubeManagerWithValidator, playlistManager: PlaylistManager) {
     routing {
-        addVideoToPlaylist(youtubeManager)
         addVideo(youtubeManager)
         addVideos(youtubeManager)
+        addVideoToPlaylist(youtubeManager)
         deleteVideoByNumber(youtubeManager)
         renameVideoByNumber(youtubeManager)
         removeVideo(playlistManager)
@@ -27,6 +28,7 @@ fun Application.configurePostRoutes(youtubeManager: YouTubeManagerInterface, pla
         deletePlaylist(playlistManager)
     }
 }
+
 
 private fun Routing.deletePlaylist(playlistManager: PlaylistManager) {
     post("/deletePlaylist") {
@@ -154,71 +156,62 @@ private fun Routing.deleteVideoByNumber(youtubeManager: YouTubeManagerInterface)
     }
 }
 
-private fun Routing.addVideos(youtubeManager: YouTubeManagerInterface) {
+
+private fun Routing.addVideos(youtubeManager: YouTubeManagerWithValidator) {
     post("/addVideos") {
         val parameters = call.receiveParameters()
         val newVideoUrl = parameters["newVideoUrl"]
         val customName = parameters["customName"] ?: ""
 
-        if (newVideoUrl.isNullOrBlank()) {
-            call.respond(HttpStatusCode.BadRequest, "URL is required")
+        val validationResult = youtubeManager.validateVideoUrl(newVideoUrl)
+        if (validationResult != null) {
+            val (status, message) = validationResult
+            call.respond(status, message)
         } else {
             val url = URL(newVideoUrl)
-            val host = url.host
-
-            if (host != "www.youtube.com" && host != "youtube.com") {
-                call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Host is not supported")
-            } else {
-                val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
-
-                if (videoId.isNullOrBlank()) {
-                    call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Video ID not found")
-                } else {
-                    try {
-                        youtubeManager.addVideos(videoId, customName)
-                        youtubeManager.saveYouTubeLinks()
-                        call.respondRedirect("/")
-                    } catch (e: IllegalArgumentException) {
-                        call.respond(HttpStatusCode.BadRequest, e.message ?: "Error adding video")
-                    }
+            val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
+            try {
+                if (videoId != null) {
+                    youtubeManager.addVideos(videoId, customName)
                 }
+                youtubeManager.saveYouTubeLinks()
+                call.respondRedirect("/")
+            } catch (e: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, e.message ?: "Error adding video")
             }
         }
     }
 }
 
-private fun Routing.addVideo(youtubeManager: YouTubeManagerInterface) {
+
+private fun Routing.addVideo(youtubeManager: YouTubeManagerWithValidator) {
     post("/addVideo") {
         val parameters = call.receiveParameters()
         val newVideoUrl = parameters["newVideoUrl"]
         val customName = parameters["customName"] ?: ""
-        val playlistName = parameters["playlistName"] ?: "" // Extract playlistName parameter
+        val playlistName = parameters["playlistName"] ?: ""
 
-        if (!newVideoUrl.isNullOrBlank()) {
-            val url = URL(newVideoUrl)
-            val host = url.host
-
-            if (host != "www.youtube.com" && host != "youtube.com") {
-                call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Host is not supported")
-            } else {
-                val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
-
-                if (videoId.isNullOrBlank()) {
-                    call.respond(HttpStatusCode.BadRequest, "Invalid YouTube URL: Video ID not found")
-                } else {
-                    try {
-                        youtubeManager.saveYouTubeLinks()
-                        call.respondRedirect("/")
-                    } catch (e: IllegalArgumentException) {
-                        call.respond(HttpStatusCode.BadRequest, e.message ?: "Error adding video to playlist")
-                    }
-                }
-            }
+        val validationResult = youtubeManager.validateVideoUrl(newVideoUrl)
+        if (validationResult != null) {
+            val (status, message) = validationResult
+            call.respond(status, message)
         } else {
-            call.respond(HttpStatusCode.BadRequest, "URL is required")
+            val url = URL(newVideoUrl)
+            val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
+            try {
+                // Add video to playlist (if provided) or default playlist
+                if (videoId != null) {
+                    youtubeManager.addVideoToPlaylist(videoId, customName, playlistName)
+                }
+                youtubeManager.saveYouTubeLinks()
+                call.respondRedirect("/")
+            } catch (e: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, e.message ?: "Error adding video to playlist")
+            }
         }
     }
 }
+
 
 private fun Routing.addVideoToPlaylist(youtubeManager: YouTubeManagerInterface) {
     post("/addVideoToPlaylist") {

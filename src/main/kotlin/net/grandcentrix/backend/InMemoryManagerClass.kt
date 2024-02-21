@@ -1,7 +1,10 @@
 package net.grandcentrix.backend
 
+import io.ktor.http.*
+import java.net.URL
+
 class InMemoryYouTubeManagerClass private constructor(private val playlistManager: PlaylistManager) :
-    YouTubeManagerInterface {
+    YouTubeManagerInterface,YouTubeManagerWithValidator {
     companion object {
         val inMemoryYouTubeManagerInstance: InMemoryYouTubeManagerClass = InMemoryYouTubeManagerClass(PlaylistManager())
     }
@@ -76,5 +79,32 @@ class InMemoryYouTubeManagerClass private constructor(private val playlistManage
 
     override fun saveYouTubeLinks() {
         // No operation needed here as we don't want to save anything
+    }
+
+    override fun saveYouTubeLinks(newVideoUrl: String?): Pair<HttpStatusCode, String> {
+        return try {
+            saveYouTubeLinks()
+            Pair(HttpStatusCode.OK, "/")
+        } catch (e: IllegalArgumentException) {
+            Pair(HttpStatusCode.BadRequest, e.message ?: "Error adding video to playlist")
+        }
+    }
+
+    override fun validateVideoUrl(newVideoUrl: String?): Pair<HttpStatusCode, String>? {
+        if (newVideoUrl.isNullOrBlank()) {
+            return Pair(HttpStatusCode.BadRequest, "URL is required")
+        }
+        val url = URL(newVideoUrl)
+
+        if (url.host !in listOf("www.youtube.com", "youtube.com", "vimeo.com")) {
+            return Pair(HttpStatusCode.BadRequest, "Invalid YouTube URL: Host is not supported")
+        }
+
+        val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
+        if (videoId.isNullOrBlank()) {
+            return Pair(HttpStatusCode.BadRequest, "Invalid YouTube URL: Video ID not found")
+        }
+
+        return null
     }
 }

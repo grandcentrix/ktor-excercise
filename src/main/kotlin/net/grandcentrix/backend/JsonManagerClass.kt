@@ -1,10 +1,13 @@
 package net.grandcentrix.backend
 
+import io.ktor.http.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.net.URL
 
-class JsonYouTubeManagerObjectClass private constructor(private val playlistManager: PlaylistManager) : YouTubeManagerInterface {
+class JsonYouTubeManagerObjectClass private constructor(private val playlistManager: PlaylistManager) :
+    YouTubeManagerInterface,YouTubeManagerWithValidator {
     companion object {
         val JsonYouTubeManagerObjectInstance: JsonYouTubeManagerObjectClass = JsonYouTubeManagerObjectClass(PlaylistManager())
     }
@@ -95,5 +98,36 @@ class JsonYouTubeManagerObjectClass private constructor(private val playlistMana
         val file = File("youtubeLinks.json")
         val jsonContent = json.encodeToString(youtubeLinks)
         file.writeText(jsonContent)
+    }
+
+    override fun saveYouTubeLinks(newVideoUrl: String?): Pair<HttpStatusCode, String> {
+        val response = validateVideoUrl(newVideoUrl)
+        if (response != null)
+            return response
+
+        return try {
+            saveYouTubeLinks()
+            Pair(HttpStatusCode.OK, "/")
+        } catch (e: IllegalArgumentException) {
+            Pair(HttpStatusCode.BadRequest, e.message ?: "Error adding video to playlist")
+        }
+    }
+
+    override fun validateVideoUrl(newVideoUrl: String?): Pair<HttpStatusCode, String>? {
+        if (newVideoUrl.isNullOrBlank()) {
+            return Pair(HttpStatusCode.BadRequest, "URL is required")
+        }
+        val url = URL(newVideoUrl)
+
+        if (url.host !in listOf("www.youtube.com", "youtube.com")) {
+            return Pair(HttpStatusCode.BadRequest, "Invalid YouTube URL: Host is not supported")
+        }
+
+        val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
+        if (videoId.isNullOrBlank()) {
+            return Pair(HttpStatusCode.BadRequest, "Invalid YouTube URL: Video ID not found")
+        }
+
+        return null
     }
 }

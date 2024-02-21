@@ -1,6 +1,5 @@
 package net.grandcentrix.backend
 
-
 import io.ktor.server.application.*
 
 fun Application.module(persistLinks: Boolean) {
@@ -9,9 +8,7 @@ fun Application.module(persistLinks: Boolean) {
     configureRouting(youtubeManager = youtubeManager, playlistManager = playlistManager)
 }
 
-
-
-fun getYouTubeManager(persistLinks: Boolean): YouTubeManagerInterface {
+fun getYouTubeManager(persistLinks: Boolean): YouTubeManagerWithValidator {
     return if (persistLinks) {
         val jsonManager = JsonYouTubeManagerObjectClass.JsonYouTubeManagerObjectInstance
         jsonManager.loadYouTubeLinks()
