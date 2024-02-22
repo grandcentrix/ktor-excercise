@@ -8,32 +8,14 @@ open class StorageManagerFile(): StorageManagerInterface<MutableList<Video>,Muta
 
     companion object {
         val StorageManagerFileInstance: StorageManagerFile = StorageManagerFile()
-
+        private const val FILE_NAME = "src/main/resources/videosList.json"
     }
 
     override val videos = this.getContent()
 
-    fun getFile(): File {
-        val fileName = "src/main/resources/videosList.json"
-        val file = File(fileName)
-        return file
-    }
+    fun getFile() = File(FILE_NAME)
 
-    override fun setEntry(item: Video) {
-        videos.add(item)
-        setContent(videos)
-    }
-
-    override fun removeEntry(item: Video) {
-        videos.remove(item)
-        setContent(videos)
-    }
-
-    override fun updateStorage() {
-//        videos[index] = item
-        setContent(videos)
-    }
-
+    //TODO change mutable list to list
     override fun getContent(): MutableList<Video> {
         val fileText = getFile().readText()
         if (fileText != "[]") {
@@ -46,6 +28,20 @@ open class StorageManagerFile(): StorageManagerInterface<MutableList<Video>,Muta
     override fun setContent(list: MutableList<Video>) {
         val videosJson = Json.encodeToJsonElement(list).toString()
         getFile().writeText(videosJson)
+    }
+
+    override fun setItem(item: Video) {
+        videos.add(item)
+        setContent(videos)
+    }
+
+    override fun removeItem(item: Video) {
+        videos.remove(item)
+        setContent(videos)
+    }
+
+    override fun updateStorage() {
+        setContent(videos)
     }
 
 }

@@ -11,10 +11,33 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.util.*
 import junit.framework.TestCase
+import net.grandcentrix.backend.models.FormActionType
+import net.grandcentrix.backend.models.Video
 import net.grandcentrix.backend.models.VideoType
 import kotlin.test.Test
 
 class RoutingTest() {
+
+    companion object {
+        const val VIDEO_ID = "1YBtzAAChU8"
+        const val RANDOM_ID = "EeRfSNx5RhE"
+        const val VIDEO_STATUS = "Testing!"
+
+        val video = Video(
+            "1YBtzAAChU8",
+            "Test Video",
+            "https://www.youtube.com/watch?v=1YBtzAAChU8",
+            VideoType.CUSTOM,
+            "Tests"
+        )
+        val videos = mutableListOf(video)
+        val videoTypes = mutableListOf("Tests")
+
+        private var actionTitle = "Add a new video:"
+        private var formAction = "/add-video"
+        private var formActionType = FormActionType.ADD.name
+        var formAttributes = mutableMapOf("name" to actionTitle, "link" to formAction, "type" to formActionType)
+    }
 
     @Test
     fun testRoot() = testApplication {
@@ -35,13 +58,12 @@ class RoutingTest() {
                         FreeMarkerContent(
                             template = "index.ftl",
                             model = mapOf(
-                                "videos" to VideoManagerTest.videos,
-                                "randomId" to VideoManagerTest.videoId,
-                                "status" to VideoManagerTest.videoStatus,
-                                "actionTitle" to FormManagerTest.actionTitle,
-                                "buttonAction" to FormManagerTest.buttonAction,
-                                "link" to VideoManagerTest.videoLink,
-                                "videoType" to VideoType.entries.dropLast(1)
+                                "videos" to videos,
+                                "randomId" to RANDOM_ID,
+                                "status" to VIDEO_STATUS,
+                                "formAction" to formAttributes,
+                                "video" to video,
+                                "videoType" to videoTypes
                             )
                         )
                     )
@@ -74,7 +96,7 @@ class RoutingTest() {
         }
         TestCase.assertEquals(HttpStatusCode.Found,testAddVideo.status)
 
-        val testDeleteVideo = client.delete("/${VideoManagerTest.videoId}/delete")
+        val testDeleteVideo = client.delete("/${VIDEO_ID}/delete")
         TestCase.assertEquals(HttpStatusCode.Found,testDeleteVideo.status)
 //
 //        val testShuffle = client.get("/shuffle")

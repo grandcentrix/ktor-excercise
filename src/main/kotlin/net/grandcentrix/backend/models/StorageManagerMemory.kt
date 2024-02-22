@@ -8,23 +8,27 @@ open class StorageManagerMemory() : StorageManagerInterface<MutableList<Video>,M
         const val VIDEO_LINK = "https://www.youtube.com/watch?v=1YBtzAAChU8"
     }
 
-    override var videos = mutableListOf(Video(VIDEO_ID, VIDEO_TITLE, VIDEO_LINK, VideoType.MUSIC))
+    override var videos = mutableListOf(
+        Video(
+            VIDEO_ID,
+            VIDEO_TITLE,
+            VIDEO_LINK,
+            VideoType.MUSIC,
+            "")
+    )
 
     override fun getContent(): MutableList<Video> {
+        videos.size
         return videos
     }
 
-    override fun setEntry(item: Video) {
+    override fun setItem(item: Video) {
         videos.add(item)
     }
 
-    override fun removeEntry(item: Video) {
+    override fun removeItem(item: Video) {
        videos.remove(item)
     }
-
-//    override fun updateStorage() {
-////        videos[index] = item
-//    }
 
     override fun setContent(list: MutableList<Video>) {
         videos = list
