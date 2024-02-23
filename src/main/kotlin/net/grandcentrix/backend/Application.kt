@@ -6,7 +6,7 @@ import io.ktor.server.netty.*
 import net.grandcentrix.backend.models.FormManager.Companion.FormManagerInstance
 import net.grandcentrix.backend.models.StorageManagerFile.Companion.StorageManagerFileInstance
 import net.grandcentrix.backend.models.StorageManagerMemory.Companion.StorageManagerMemoryInstance
-import net.grandcentrix.backend.models.StorageManagerTypesFile
+import net.grandcentrix.backend.models.StorageManagerTypesFile.Companion.StorageManagerTypesFileInstance
 import net.grandcentrix.backend.models.VideoManager.Companion.VideoManagerInstance
 import net.grandcentrix.backend.models.VideoType
 import net.grandcentrix.backend.plugins.configureRouting
@@ -16,9 +16,9 @@ import net.grandcentrix.backend.plugins.configureTemplating
 fun main() {
     val saveVideos = true
 
-    if (StorageManagerTypesFile.StorageManagerTypesFileInstance.getContent().isEmpty()) {
+    if (StorageManagerTypesFileInstance.getContent().isEmpty()) {
         val videoTypeNames = VideoType.entries.map { it.name }
-        StorageManagerTypesFile.StorageManagerTypesFileInstance.setContent(videoTypeNames)
+        StorageManagerTypesFileInstance.setContent(videoTypeNames)
     }
 
     if (saveVideos) {
@@ -26,15 +26,14 @@ fun main() {
         if (videosJson.isNotEmpty()) {
             StorageManagerMemoryInstance.setContent(videosJson)
             VideoManagerInstance.defineStorage(StorageManagerFileInstance)
-            VideoManagerInstance.loadVideosToType(videosJson)
+            VideoManagerInstance.loadVideosToTypeList(videosJson)
         }
     }
 
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
+    embeddedServer(Netty, port = 8080, host = "localhost", module = Application::module)
         .start(wait = true)
 }
 
-// NEAT!
 fun Application.module() {
     configureSecurity()
     configureTemplating()

@@ -35,7 +35,7 @@ class StorageManagerTypesFile {
 
     @Test
     fun testGetFile() {
-
+        //TODO
     }
 
     @Test

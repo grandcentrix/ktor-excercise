@@ -1,5 +1,6 @@
 package net.grandcentrix.backend
 
+import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
 import net.grandcentrix.backend.models.StorageManagerMemory.Companion.StorageManagerMemoryInstance
@@ -10,15 +11,28 @@ import org.junit.Test
 import kotlin.test.*
 
 class StorageManagerMemoryTest {
-
-
     companion object {
-        val video = Video("12345", "Test Video", "", VideoType.MUSIC, "")
+        val video1 = Video(
+            "-R0UYHS8A_A",
+            "Lo-fi Jazz",
+            "https://www.youtube.com/watch?v=-R0UYHS8A_A",
+            VideoType.MUSIC,
+            ""
+        )
+        val video2 = Video(
+            "1bvbsx-hpFc",
+            "Lo-fi Summer",
+            "https://www.youtube.com/watch?v=1bvbsx-hpFc",
+            VideoType.NEWS,
+            ""
+        )
+        val videos = mutableListOf(video1, video2)
     }
 
     @Before
     fun beforeTests() {
         mockkObject(StorageManagerMemoryInstance)
+        every { StorageManagerMemoryInstance.videos } returns videos
     }
 
     @AfterTest
@@ -28,29 +42,34 @@ class StorageManagerMemoryTest {
 
     @Test
     fun testGetContent() {
-        val videoID = "1YBtzAAChU8"
-        val videos = StorageManagerMemoryInstance.getContent()
-        val video = videos.find { it.id == videoID }
+        val videosList = StorageManagerMemoryInstance.getContent()
+        val video = videosList.find { it.id == video1.id }
         assertNotNull(video)
-        assertTrue { videos.size >= 1 }
+        assertTrue { videosList.size >= 1 }
     }
 
     @Test
     fun testSetItem() {
-        StorageManagerMemoryInstance.setItem(video)
+        val newVideo = Video(
+            "0MiR7bC9B5o",
+            "Test",
+            "https://www.youtube.com/watch?v=0MiR7bC9B5o",
+            VideoType.CUSTOM,
+            "HOLIDAYS"
+        )
+        StorageManagerMemoryInstance.setItem(newVideo)
         // check if contains added video
-        assertContains(StorageManagerMemoryInstance.getContent(), video)
+        assertContains(StorageManagerMemoryInstance.getContent(), newVideo)
     }
 
     @Test
     fun testRemoveItem() {
-        StorageManagerMemoryInstance.removeItem(video)
-        assertFails { assertContains(StorageManagerMemoryInstance.getContent(), video) }
+        StorageManagerMemoryInstance.removeItem(video2)
+        assertFails { assertContains(StorageManagerMemoryInstance.getContent(), video2) }
     }
 
     @Test
     fun testSetContent() {
-        val videos = mutableListOf(video)
         StorageManagerMemoryInstance.setContent(videos)
         assertEquals(StorageManagerMemoryInstance.getContent(), videos)
     }

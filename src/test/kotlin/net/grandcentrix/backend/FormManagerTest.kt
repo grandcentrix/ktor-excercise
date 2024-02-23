@@ -127,6 +127,11 @@ class FormManagerTest {
     }
 
     @Test
+    fun testSetVideoParametersDuplicatedCustomTypeName() {
+        //TODO
+    }
+
+    @Test
     fun testSetVideoParametersBlank() {
         val formParameters = Parameters.build {
             append("link", VIDEO_LINK)

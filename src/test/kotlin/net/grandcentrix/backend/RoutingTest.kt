@@ -63,7 +63,7 @@ class RoutingTest() {
                                 "status" to VIDEO_STATUS,
                                 "formAction" to formAttributes,
                                 "video" to video,
-                                "videoType" to videoTypes
+                                "videoTypes" to videoTypes
                             )
                         )
                     )

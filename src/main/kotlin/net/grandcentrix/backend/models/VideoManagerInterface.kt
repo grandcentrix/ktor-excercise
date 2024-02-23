@@ -4,7 +4,7 @@ interface VideoManagerInterface {
 
     fun defineStorage(storageType: StorageManagerInterface<MutableList<Video>,MutableList<Video>>)
     fun getVideos(): MutableList<Video>
-    fun loadVideosToType(videos: MutableList<Video>)
+    fun loadVideosToTypeList(videos: MutableList<Video>)
     fun getVideosByType(videoType: String): MutableList<out Video>
     fun findVideo(id: String): Video?
     fun addVideo()

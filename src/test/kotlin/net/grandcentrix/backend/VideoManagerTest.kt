@@ -1,56 +1,65 @@
 package net.grandcentrix.backend
 
+import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
 import junit.framework.TestCase.assertEquals
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
-import net.grandcentrix.backend.models.CustomTypeVideo
 import net.grandcentrix.backend.models.FormManager.Companion.FormManagerInstance
+import net.grandcentrix.backend.models.MusicVideo
 import net.grandcentrix.backend.models.NewsVideo
 import net.grandcentrix.backend.models.StorageManagerFile.Companion.StorageManagerFileInstance
 import net.grandcentrix.backend.models.Video
 import net.grandcentrix.backend.models.VideoManager.Companion.VideoManagerInstance
 import net.grandcentrix.backend.models.VideoType
-import org.junit.Before
 import java.io.File
 import kotlin.reflect.jvm.internal.impl.load.java.lazy.descriptors.DeclaredMemberIndex.Empty
 import kotlin.test.*
 
-class VideoManagerTest() {
+class VideoManagerTest {
 
     companion object {
+
         const val VIDEO_ID = "1YBtzAAChU8"
         const val VIDEO_TITLE = "Lo-fi Girl - Christmas"
         const val VIDEO_LINK = "https://www.youtube.com/watch?v=1YBtzAAChU8"
+        const val CUSTOM_TYPE_NAME = "HOLIDAYS"
         val VIDEO_TYPE = VideoType.CUSTOM
-        val video = Video(
+
+        val video1 = Video(
             VIDEO_ID,
             VIDEO_TITLE,
             VIDEO_LINK,
             VIDEO_TYPE,
-            "HOLIDAYS"
-        ) // attributes according to a video in the json file
+            CUSTOM_TYPE_NAME
+        )
 
-        val typeNames = VideoType.entries.map { it.name }.toMutableList()
-        private const val FILE_NAME = "src/main/resources/testFile.json"
-    }
-
-    @Before
-    fun beforeTests() {
-        val video = Video(
-            "1YBtzAAChU8",
-            "Test",
-            "https://www.youtube.com/watch?v=1YBtzAAChU8",
-            VideoType.MUSIC,
+        val video2 = Video(
+            "1bvbsx-hpFc",
+            "Lo-fi Summer",
+            "https://www.youtube.com/watch?v=1bvbsx-hpFc",
+            VideoType.NEWS,
             ""
         )
-        val videosJson = Json.encodeToJsonElement(video).toString()
+
+//        val typeNames = VideoType.entries.map { it.name }.toMutableList()
+        private const val FILE_NAME = "src/main/resources/testFile.json"
+        val videos = mutableListOf(video1,video2)
+        val videosJson = Json.encodeToJsonElement(videos).toString()
+    }
+
+    @BeforeTest
+    fun beforeTest() {
         File(FILE_NAME).writeText(videosJson)
 
-        //NOTE define a storage (memory or file) and mock it
-        mockkObject(StorageManagerFileInstance) //using file storage in this case
-        mockkObject(FormManagerInstance)
+        //NOTE define a storage (memory or file) and mock it -> file chose
+        mockkObject(StorageManagerFileInstance)
+        every { StorageManagerFileInstance.getFile() } returns File(FILE_NAME)
+        every { StorageManagerFileInstance.videos } returns videos
+
+        VideoManagerInstance.defineStorage(StorageManagerFileInstance)
+        VideoManagerInstance.loadVideosToTypeList(videos)
     }
 
     @AfterTest
@@ -67,33 +76,42 @@ class VideoManagerTest() {
     @Test
     fun testGetVideos() {
         val videosList = VideoManagerInstance.getVideos()
-        val actual = videosList.find{it.id == video.id}!!
+        val actual = videosList.find{it.id == video1.id}!!
 
         assertNotNull(videosList)
-        assertEquals(video.id, actual.id)
-        assertEquals(video.title, actual.title)
-        assertEquals(video.link, actual.link)
-        assertEquals(video.videoType, actual.videoType)
+        assertEquals(video1.id, actual.id)
+        assertEquals(video1.title, actual.title)
+        assertEquals(video1.link, actual.link)
+        assertEquals(video1.videoType, actual.videoType)
     }
 
     @Test
-    fun testLoadVideosToType() {
-        val videos = mutableListOf(video)
-        VideoManagerInstance.loadVideosToType(videos)
-        val customVideos = VideoManagerInstance.getVideosByType(VIDEO_TYPE.name)
-        assertContains(customVideos, video)
+    fun testLoadVideosToTypeList() {
+        val newVideo = Video(
+            "-R0UYHS8A_A",
+            "Lo-fi Jazz Test",
+            "https://www.youtube.com/watch?v=-R0UYHS8A_A",
+            VideoType.MUSIC,
+            ""
+        )
+        videos.add(newVideo)
+        VideoManagerInstance.loadVideosToTypeList(videos)
+        val customVideo = VideoManagerInstance.getVideosByType(newVideo.videoType.name)
+            .find { it.id == newVideo.id }!!
+
+        assertEquals(newVideo.id, customVideo.id)
     }
 
     @Test
     fun testGetVideosByType() {
-        val customVideos = VideoManagerInstance.getVideosByType(VIDEO_TYPE.name)
-        val actual = customVideos.find{it.id == video.id}!!
+        val videosByType = VideoManagerInstance.getVideosByType(video2.videoType.name)
+        val actual = videosByType.find{it.id == video2.id}!!
 
-        assertNotNull(customVideos)
-        assertEquals(video.id, actual.id)
-        assertEquals(video.title, actual.title)
-        assertEquals(video.link, actual.link)
-        assertEquals(video.videoType, actual.videoType)
+        assertNotNull(videosByType)
+        assertEquals(video2.id, actual.id)
+        assertEquals(video2.title, actual.title)
+        assertEquals(video2.link, actual.link)
+        assertEquals(video2.videoType, actual.videoType)
     }
 
     @Test
@@ -104,14 +122,16 @@ class VideoManagerTest() {
 
     @Test
     fun testDeleteFromTypeList() {
-        VideoManagerInstance.deleteFromTypeList(VIDEO_ID, VideoType.CUSTOM)
+        VideoManagerInstance.deleteFromTypeList(video1.id, VideoType.CUSTOM)
         val customVideos = VideoManagerInstance.getVideosByType(VideoType.CUSTOM.name)
-        assertContains(customVideos, video)
+        assertNull(customVideos.find { it.id == video1.id })
     }
 
     @Test
     fun testFindVideo() {
-        assertEquals(VIDEO_ID, VideoManagerInstance.findVideo(VIDEO_ID)?.id ?: Video)
+        val id = VideoManagerInstance.findVideo(video2.id)?.id
+        assertEquals(video2.id, id!!)
+        assertNotNull(id)
     }
 
     @Test
@@ -158,7 +178,7 @@ class VideoManagerTest() {
         val newVideo = Video(id, title, link, videoType)
 
         FormManagerInstance.video = newVideo
-        mockkObject(VideoManagerInstance.addVideo())
+        VideoManagerInstance.addVideo()
 
         val video = VideoManagerInstance.getVideos().find { it.id == id }
         val musicVideo = VideoManagerInstance.getVideosByType(VideoType.MUSIC.name)
@@ -170,10 +190,10 @@ class VideoManagerTest() {
 
     @Test
     fun testDeleteVideo() {
-        VideoManagerInstance.deleteVideo(VIDEO_ID)
-        val video = VideoManagerInstance.getVideos().find { it.id == VIDEO_ID }
+        VideoManagerInstance.deleteVideo(video1.id)
+        val video = VideoManagerInstance.getVideos().find { it.id == video1.id }
         val typeVideo = VideoManagerInstance.getVideosByType(VIDEO_TYPE.name)
-            .find { it.id == VIDEO_ID }
+            .find { it.id == video1.id }
         assertNull(video)
         assertNull(typeVideo)
     }
@@ -182,31 +202,27 @@ class VideoManagerTest() {
 
     @Test
     fun testUpdateVideo() {
+        // updating video1
         FormManagerInstance.updatedVideoValues = mutableMapOf(
-            "id" to VIDEO_ID,
+            "id" to video2.id,
             "newTitle" to "Test",
-            "newType" to VideoType.NEWS,
+            "newType" to VideoType.MUSIC, // before was NEWS
             "newCustomTypeName" to ""
         )
+        val previousType = video2.videoType.name
 
-        val typeVideo = CustomTypeVideo(
-            VIDEO_ID,
-            VIDEO_TITLE,
-            VIDEO_LINK,
-            VIDEO_TYPE,
-            "HOLIDAYS"
-        )
+        VideoManagerInstance.updateVideo()
 
-        mockkObject(VideoManagerInstance.updateVideo())
-
-        val videoWithPreviousType = VideoManagerInstance.getVideosByType(VIDEO_TYPE.name)
-            .find { it.id == VIDEO_ID }
+        val videoWithPreviousType = VideoManagerInstance.getVideosByType(previousType)
+            .find { it.id == video2.id }
 
         val updatedVideo = VideoManagerInstance.getVideos()
-            .find { it.id == VIDEO_ID }!!
+            .find { it.id == video2.id }!!
 
-        val updatedVideoWithType = VideoManagerInstance.getVideosByType(updatedVideo.videoType.name)
-            .find { it.id == VIDEO_ID }
+        val updatedVideoWithType = VideoManagerInstance.getVideosByType(
+            updatedVideo.videoType.name
+        )
+            .find { it.id == video2.id }
 
         // assert it's removed from previous type list
         assertNull(videoWithPreviousType)
@@ -219,7 +235,7 @@ class VideoManagerTest() {
         assertEquals(FormManagerInstance.updatedVideoValues["newCustomTypeName"], updatedVideo.customTypeName)
 
         // assert video was cast to new type
-        assertIs<NewsVideo>(updatedVideoWithType)
+        assertIs<MusicVideo>(updatedVideoWithType)
     }
 
     //TODO fail cases for update video
@@ -233,8 +249,8 @@ class VideoManagerTest() {
 
     @Test
     fun testShuffleByType() {
-        val randomID = VideoManagerInstance.shuffleByType(VideoType.MUSIC.name)
-        val videoID = VideoManagerInstance.getVideosByType(VideoType.MUSIC.name)
+        val randomID = VideoManagerInstance.shuffleByType(video2.videoType.name) // type that exists in the list
+        val videoID = VideoManagerInstance.getVideosByType(video2.videoType.name)
             .find {it.id == randomID}
         assertNotNull(videoID)
     }

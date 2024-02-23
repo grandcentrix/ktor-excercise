@@ -3,19 +3,22 @@ package net.grandcentrix.backend.models
 import net.grandcentrix.backend.models.FormManager.Companion.FormManagerInstance
 import net.grandcentrix.backend.models.StorageManagerMemory.Companion.StorageManagerMemoryInstance
 
-open class VideoManager private constructor(
+open class VideoManager private constructor (
     private var storage: StorageManagerInterface<MutableList<Video>,MutableList<Video>>,
     private val formManager: FormManager
 ) : VideoManagerInterface {
 
     companion object {
-        val VideoManagerInstance: VideoManager = VideoManager(StorageManagerMemoryInstance, FormManagerInstance)
+        val VideoManagerInstance: VideoManager =
+            VideoManager(StorageManagerMemoryInstance, FormManagerInstance)
         private var musicVideos = mutableListOf<MusicVideo>()
         private var newsVideos = mutableListOf<NewsVideo>()
         private var customTypeVideos = mutableListOf<CustomTypeVideo>()
     }
 
-    override fun defineStorage(storageType: StorageManagerInterface<MutableList<Video>,MutableList<Video>>) {
+    override fun defineStorage (
+        storageType: StorageManagerInterface<MutableList<Video>,MutableList<Video>>
+    ) {
         storage = storageType
     }
 
@@ -24,16 +27,36 @@ open class VideoManager private constructor(
     }
 
     protected fun Video.toType() = when (this.videoType) {
-        VideoType.MUSIC -> MusicVideo(this.id, this.title, this.link, this.videoType, this.customTypeName)
-        VideoType.NEWS -> NewsVideo(this.id, this.title, this.link, this.videoType, this.customTypeName)
-        VideoType.CUSTOM -> CustomTypeVideo(this.id, this.title, this.link, this.videoType, this.customTypeName)
+        VideoType.MUSIC -> MusicVideo(
+            this.id, this.title, this.link, this.videoType, this.customTypeName
+        )
+
+        VideoType.NEWS -> NewsVideo(
+            this.id, this.title, this.link, this.videoType, this.customTypeName
+        )
+
+        VideoType.CUSTOM -> CustomTypeVideo(
+            this.id, this.title, this.link, this.videoType, this.customTypeName
+        )
+
         else -> Video("", "", "", VideoType.CUSTOM, "")
     }
 
-    override fun loadVideosToType(videos: MutableList<Video>) {
-        musicVideos = videos.filter { it.videoType == VideoType.MUSIC }.mapNotNull { it.toType() as? MusicVideo }.toMutableList()
-        newsVideos = videos.filter { it.videoType == VideoType.NEWS }.mapNotNull { it.toType() as? NewsVideo }.toMutableList()
-        customTypeVideos = videos.filter { it.videoType == VideoType.CUSTOM }.mapNotNull { it.toType() as? CustomTypeVideo }.toMutableList()
+    override fun loadVideosToTypeList(videos: MutableList<Video>) {
+        videos.map { it ->
+            when (it.videoType) {
+                VideoType.MUSIC -> musicVideos = videos.mapNotNull {
+                    it.toType() as? MusicVideo }.toMutableList()
+
+                VideoType.NEWS -> newsVideos = videos.mapNotNull {
+                    it.toType() as? NewsVideo }.toMutableList()
+
+                VideoType.CUSTOM -> customTypeVideos = videos.mapNotNull {
+                    it.toType() as? CustomTypeVideo }.toMutableList()
+
+                else -> throw NotImplementedError("Videos wasn't added to type. Video type wasn't probably found!")
+            }
+        }
     }
 
     //FIXME logic is wrong - will always return custom even if it doesn't exist
@@ -42,7 +65,9 @@ open class VideoManager private constructor(
         return when (assignedType) {
             VideoType.MUSIC -> musicVideos
             VideoType.NEWS -> newsVideos
-            VideoType.CUSTOM -> customTypeVideos.filter { it.customTypeName == videoType }.toMutableList()
+            VideoType.CUSTOM -> customTypeVideos.filter {
+                it.customTypeName == videoType
+            }.toMutableList()
             else -> mutableListOf()
         }
     }
@@ -136,12 +161,15 @@ open class VideoManager private constructor(
         addToTypeList(video)
     }
 
-    override fun shuffle(): String  = storage.videos.map { it.id }.random()
+    override fun shuffle(): String  = storage.getContent().map { it.id }.random()
 
-    override fun shuffleByType(videoType: String): String = when (assignType(videoType)) {
+    override fun shuffleByType(videoType: String): String =
+        when (assignType(videoType)) {
         VideoType.MUSIC -> musicVideos
         VideoType.NEWS -> newsVideos
-        VideoType.CUSTOM -> customTypeVideos.filter { it.customTypeName == videoType }
+        VideoType.CUSTOM -> customTypeVideos.filter {
+            it.customTypeName == videoType
+        }
         else -> storage.videos
     }.map {
         it.id

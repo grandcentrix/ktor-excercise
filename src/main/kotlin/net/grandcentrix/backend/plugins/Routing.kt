@@ -28,8 +28,10 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
 
             post("/add-video") {
                 val formParameters = call.receiveParameters()
-                formManager.setVideoParameters(formParameters)
-                videoManager.addVideo()
+                val inputIsValid = formManager.setVideoParameters(formParameters)
+                if (inputIsValid) {
+                    videoManager.addVideo()
+                }
                 call.respondRedirect("/")
             }
 
