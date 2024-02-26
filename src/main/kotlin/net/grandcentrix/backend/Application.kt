@@ -8,7 +8,7 @@ fun Application.module(persistLinks: Boolean) {
     configureRouting(youtubeManager = youtubeManager, playlistManager = playlistManager)
 }
 
-fun getYouTubeManager(persistLinks: Boolean): YouTubeManagerWithValidator {
+fun getYouTubeManager(persistLinks: Boolean): YouTubeManagerInterface {
     return if (persistLinks) {
         val jsonManager = JsonYouTubeManagerObjectClass.JsonYouTubeManagerObjectInstance
         jsonManager.loadYouTubeLinks()
@@ -17,3 +17,4 @@ fun getYouTubeManager(persistLinks: Boolean): YouTubeManagerWithValidator {
         InMemoryYouTubeManagerClass.inMemoryYouTubeManagerInstance
     }
 }
+

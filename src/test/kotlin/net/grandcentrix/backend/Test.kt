@@ -1,25 +1,28 @@
 package net.grandcentrix.backend
 
-import org.junit.Assert
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 
-public class YouTubeManagerTest {
+class YouTubeManagerTest {
 
     @Test
     fun testJsonYouTubeManager() {
         val youtubeManager = JsonYouTubeManagerObjectClass.JsonYouTubeManagerObjectInstance
 
+        // Add test data
+        youtubeManager.addVideos("VIDEO_ID_1", "Video 1")
+
         // Test adding a video
-        Assert.assertEquals(1, youtubeManager.getYoutubeLinks().size)
+        assertEquals(1, youtubeManager.getYoutubeLinks().size)
 
         // Test getting a random YouTube video URL
         val randomUrl = youtubeManager.getRandomYouTubeVideoUrl()
-        Assert.assertTrue(randomUrl.startsWith("https://www.youtube.com/embed/"))
+        assertTrue(randomUrl.startsWith("https://www.youtube.com/embed/"))
 
         // Test removing a video
         youtubeManager.removeVideoByNumber(0)
-        Assert.assertEquals(0, youtubeManager.getYoutubeLinks().size)
-
+        assertEquals(0, youtubeManager.getYoutubeLinks().size)
     }
 
     @Test
@@ -27,7 +30,7 @@ public class YouTubeManagerTest {
         val youtubeManager = getYouTubeManager(persistLinks = true)
 
         // Ensure that the returned manager is an instance of JsonYouTubeManagerObjectClass
-        Assert.assertTrue(youtubeManager is JsonYouTubeManagerObjectClass)
+        assertTrue(youtubeManager is JsonYouTubeManagerObjectClass)
     }
 
     @Test
@@ -35,11 +38,15 @@ public class YouTubeManagerTest {
         val youtubeManager = getYouTubeManager(persistLinks = false)
 
         // Ensure that the returned manager is an instance of InMemoryYouTubeManagerClass
-        Assert.assertTrue(youtubeManager is InMemoryYouTubeManagerClass)
+        assertTrue(youtubeManager is InMemoryYouTubeManagerClass)
     }
+
     @Test
     fun testLoadAndSaveYouTubeLinks() {
         val youtubeManager = JsonYouTubeManagerObjectClass.JsonYouTubeManagerObjectInstance
+        // Add test data
+        youtubeManager.addVideos("VIDEO_ID_1", "Video 1")
+
         // Test saving and loading youtubeLinks
         youtubeManager.saveYouTubeLinks()
 
@@ -47,22 +54,25 @@ public class YouTubeManagerTest {
         val newYoutubeManager = JsonYouTubeManagerObjectClass.JsonYouTubeManagerObjectInstance
         newYoutubeManager.loadYouTubeLinks()
 
-        Assert.assertEquals(1, newYoutubeManager.getYoutubeLinks().size)
+        assertEquals(1, newYoutubeManager.getYoutubeLinks().size)
     }
+
     @Test
     fun testInMemoryYouTubeManager() {
         val youtubeManager = InMemoryYouTubeManagerClass.inMemoryYouTubeManagerInstance
 
+        // Add test data
+        youtubeManager.addVideos("VIDEO_ID_1", "Video 1")
+
         // Test adding a video
-        Assert.assertEquals(1, youtubeManager.getYoutubeLinks().size)
+        assertEquals(1, youtubeManager.getYoutubeLinks().size)
 
         // Test getting a random YouTube video URL
         val randomUrl = youtubeManager.getRandomYouTubeVideoUrl()
-        Assert.assertTrue(randomUrl.startsWith("https://www.youtube.com/embed/"))
+        assertTrue(randomUrl.startsWith("https://www.youtube.com/embed/"))
 
         // Test removing a video
         youtubeManager.removeVideoByNumber(0)
-        Assert.assertEquals(0, youtubeManager.getYoutubeLinks().size)
+        assertEquals(0, youtubeManager.getYoutubeLinks().size)
     }
 }
-

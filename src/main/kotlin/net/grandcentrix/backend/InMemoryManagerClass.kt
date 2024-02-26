@@ -4,7 +4,7 @@ import io.ktor.http.*
 import java.net.URL
 
 class InMemoryYouTubeManagerClass private constructor(private val playlistManager: PlaylistManager) :
-    YouTubeManagerInterface,YouTubeManagerWithValidator {
+    YouTubeManagerInterface {
     companion object {
         val inMemoryYouTubeManagerInstance: InMemoryYouTubeManagerClass = InMemoryYouTubeManagerClass(PlaylistManager())
     }
@@ -96,7 +96,7 @@ class InMemoryYouTubeManagerClass private constructor(private val playlistManage
         }
         val url = URL(newVideoUrl)
 
-        if (url.host !in listOf("www.youtube.com", "youtube.com", "vimeo.com")) {
+        if (url.host !in listOf("www.youtube.com", "youtube.com")) {
             return Pair(HttpStatusCode.BadRequest, "Invalid YouTube URL: Host is not supported")
         }
 

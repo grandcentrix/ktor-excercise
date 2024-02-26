@@ -12,4 +12,6 @@ interface YouTubeManagerInterface {
     fun saveYouTubeLinks(newVideoUrl: String?): Pair<HttpStatusCode, String>
     fun addVideoToPlaylist(videoId: String, customName: String?, playlistName: String)
     fun removeVideo(videoIndex: Int): Boolean
+
+    fun validateVideoUrl(newVideoUrl: String?): Pair<HttpStatusCode, String>?
 }

@@ -7,7 +7,7 @@ import java.io.File
 import java.net.URL
 
 class JsonYouTubeManagerObjectClass private constructor(private val playlistManager: PlaylistManager) :
-    YouTubeManagerInterface,YouTubeManagerWithValidator {
+    YouTubeManagerInterface {
     companion object {
         val JsonYouTubeManagerObjectInstance: JsonYouTubeManagerObjectClass = JsonYouTubeManagerObjectClass(PlaylistManager())
     }
@@ -123,7 +123,11 @@ class JsonYouTubeManagerObjectClass private constructor(private val playlistMana
             return Pair(HttpStatusCode.BadRequest, "Invalid YouTube URL: Host is not supported")
         }
 
-        val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
+        val videoIdPattern = Regex("[?&]v=([^&]+)")
+        val matchResult = videoIdPattern.find(newVideoUrl ?: "")
+
+        val videoId = matchResult?.groupValues?.getOrNull(1)
+
         if (videoId.isNullOrBlank()) {
             return Pair(HttpStatusCode.BadRequest, "Invalid YouTube URL: Video ID not found")
         }

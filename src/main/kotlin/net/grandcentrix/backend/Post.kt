@@ -14,7 +14,7 @@ import java.net.URL
 
 
 
-fun Application.configurePostRoutes(youtubeManager: YouTubeManagerWithValidator, playlistManager: PlaylistManager) {
+fun Application.configurePostRoutes(youtubeManager: YouTubeManagerInterface, playlistManager: PlaylistManager) {
     routing {
         addVideo(youtubeManager)
         addVideos(youtubeManager)
@@ -157,7 +157,7 @@ private fun Routing.deleteVideoByNumber(youtubeManager: YouTubeManagerInterface)
 }
 
 
-private fun Routing.addVideos(youtubeManager: YouTubeManagerWithValidator) {
+private fun Routing.addVideos(youtubeManager: YouTubeManagerInterface) {
     post("/addVideos") {
         val parameters = call.receiveParameters()
         val newVideoUrl = parameters["newVideoUrl"]
@@ -184,7 +184,7 @@ private fun Routing.addVideos(youtubeManager: YouTubeManagerWithValidator) {
 }
 
 
-private fun Routing.addVideo(youtubeManager: YouTubeManagerWithValidator) {
+private fun Routing.addVideo(youtubeManager:YouTubeManagerInterface) {
     post("/addVideo") {
         val parameters = call.receiveParameters()
         val newVideoUrl = parameters["newVideoUrl"]
