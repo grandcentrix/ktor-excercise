@@ -26,6 +26,7 @@ fun Application.configurePostRoutes(youtubeManager: YouTubeManagerInterface, pla
         switchPlaylist(playlistManager)
         createPlaylist(playlistManager)
         deletePlaylist(playlistManager)
+        renamePlaylist(playlistManager)
     }
 }
 
@@ -168,13 +169,15 @@ private fun Routing.addVideos(youtubeManager: YouTubeManagerInterface) {
             val (status, message) = validationResult
             call.respond(status, message)
         } else {
-            val url = URL(newVideoUrl)
-            val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
+            val videoIdPattern = Regex("[?&]v=([^&]+)")
+            val matchResult = videoIdPattern.find(newVideoUrl ?: "")
+
+            val videoId = matchResult?.groupValues?.getOrNull(1)
             try {
                 if (videoId != null) {
                     youtubeManager.addVideos(videoId, customName)
                 }
-                youtubeManager.saveYouTubeLinks()
+                youtubeManager.saveYouTubeLinksJson()
                 call.respondRedirect("/")
             } catch (e: IllegalArgumentException) {
                 call.respond(HttpStatusCode.BadRequest, e.message ?: "Error adding video")
@@ -196,14 +199,15 @@ private fun Routing.addVideo(youtubeManager:YouTubeManagerInterface) {
             val (status, message) = validationResult
             call.respond(status, message)
         } else {
-            val url = URL(newVideoUrl)
-            val videoId = url.query?.split("v=")?.get(1)?.split("&")?.get(0)
+            val videoIdPattern = Regex("[?&]v=([^&]+)")
+            val matchResult = videoIdPattern.find(newVideoUrl ?: "")
+
+            val videoId = matchResult?.groupValues?.getOrNull(1)
             try {
                 // Add video to playlist (if provided) or default playlist
                 if (videoId != null) {
                     youtubeManager.addVideoToPlaylist(videoId, customName, playlistName)
                 }
-                youtubeManager.saveYouTubeLinks()
                 call.respondRedirect("/")
             } catch (e: IllegalArgumentException) {
                 call.respond(HttpStatusCode.BadRequest, e.message ?: "Error adding video to playlist")
@@ -220,7 +224,6 @@ private fun Routing.addVideoToPlaylist(youtubeManager: YouTubeManagerInterface) 
         val customName = parameters["customName"]
         val playlistName = parameters["playlistName"]
 
-        println("Received parameters: videoId=$videoId, customName=$customName, playlistName=$playlistName")
 
         if (videoId != null && playlistName != null && playlistName.isNotBlank()) {
             try {
@@ -238,5 +241,24 @@ private fun Routing.addVideoToPlaylist(youtubeManager: YouTubeManagerInterface) 
     }
 }
 
+private fun Routing.renamePlaylist(playlistManager: PlaylistManager) {
+    post("/renamePlaylist") {
+        val parameters = call.receiveParameters()
+        val oldName = parameters["playlistNameToRename"]
+        val newName = parameters["newPlaylistName"]
+
+        if (oldName.isNullOrBlank() || newName.isNullOrBlank()) {
+            call.respond(HttpStatusCode.BadRequest, "Invalid playlist names")
+        } else {
+            try {
+                playlistManager.renamePlaylist(oldName, newName)
+                println("Old Name: $oldName, New Name: $newName")
+                call.respondRedirect("/")
+            } catch (e: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, e.message ?: "Error renaming playlist")
+            }
+        }
+    }
+}
 
 

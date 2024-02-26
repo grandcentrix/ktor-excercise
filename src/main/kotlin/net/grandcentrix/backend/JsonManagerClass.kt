@@ -60,13 +60,13 @@ class JsonYouTubeManagerObjectClass private constructor(private val playlistMana
 
     override fun addVideos(videoId: String, customName: String) {
         youtubeLinks.add(VideoInfo(videoId, customName))
-        saveYouTubeLinks()
+        saveYouTubeLinksJson()
     }
 
     override fun removeVideoByNumber(videoNumber: Int) {
         if (videoNumber >= 0 && videoNumber < youtubeLinks.size) {
             youtubeLinks.removeAt(videoNumber)
-            saveYouTubeLinks()
+            saveYouTubeLinksJson()
         }
     }
 
@@ -76,7 +76,7 @@ class JsonYouTubeManagerObjectClass private constructor(private val playlistMana
             false
         } else {
             video.customName = newCustomName
-            saveYouTubeLinks()
+            saveYouTubeLinksJson()
             true
         }
     }
@@ -94,24 +94,12 @@ class JsonYouTubeManagerObjectClass private constructor(private val playlistMana
         }
     }
 
-    override fun saveYouTubeLinks() {
+    override fun saveYouTubeLinksJson() {
         val file = File("youtubeLinks.json")
         val jsonContent = json.encodeToString(youtubeLinks)
         file.writeText(jsonContent)
     }
 
-    override fun saveYouTubeLinks(newVideoUrl: String?): Pair<HttpStatusCode, String> {
-        val response = validateVideoUrl(newVideoUrl)
-        if (response != null)
-            return response
-
-        return try {
-            saveYouTubeLinks()
-            Pair(HttpStatusCode.OK, "/")
-        } catch (e: IllegalArgumentException) {
-            Pair(HttpStatusCode.BadRequest, e.message ?: "Error adding video to playlist")
-        }
-    }
 
     override fun validateVideoUrl(newVideoUrl: String?): Pair<HttpStatusCode, String>? {
         if (newVideoUrl.isNullOrBlank()) {

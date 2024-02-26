@@ -48,7 +48,7 @@ class YouTubeManagerTest {
         youtubeManager.addVideos("VIDEO_ID_1", "Video 1")
 
         // Test saving and loading youtubeLinks
-        youtubeManager.saveYouTubeLinks()
+        youtubeManager.saveYouTubeLinksJson()
 
         // Create a new instance to simulate a different session or restart
         val newYoutubeManager = JsonYouTubeManagerObjectClass.JsonYouTubeManagerObjectInstance

@@ -40,7 +40,6 @@ class InMemoryYouTubeManagerClass private constructor(private val playlistManage
 
     override fun addVideos(videoId: String, customName: String) {
         youtubeLinks.add(VideoInfo(videoId, customName))
-        saveYouTubeLinks()
     }
 
 
@@ -62,7 +61,6 @@ class InMemoryYouTubeManagerClass private constructor(private val playlistManage
     override fun removeVideoByNumber(videoNumber: Int) {
         if (videoNumber >= 0 && videoNumber < youtubeLinks.size) {
             youtubeLinks.removeAt(videoNumber)
-            saveYouTubeLinks()
         }
     }
 
@@ -72,23 +70,14 @@ class InMemoryYouTubeManagerClass private constructor(private val playlistManage
             false
         } else {
             video.customName = newCustomName
-            saveYouTubeLinks()
             true
         }
     }
 
-    override fun saveYouTubeLinks() {
+    override fun saveYouTubeLinksJson() {
         // No operation needed here as we don't want to save anything
     }
 
-    override fun saveYouTubeLinks(newVideoUrl: String?): Pair<HttpStatusCode, String> {
-        return try {
-            saveYouTubeLinks()
-            Pair(HttpStatusCode.OK, "/")
-        } catch (e: IllegalArgumentException) {
-            Pair(HttpStatusCode.BadRequest, e.message ?: "Error adding video to playlist")
-        }
-    }
 
     override fun validateVideoUrl(newVideoUrl: String?): Pair<HttpStatusCode, String>? {
         if (newVideoUrl.isNullOrBlank()) {

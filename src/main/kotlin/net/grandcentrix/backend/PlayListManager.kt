@@ -19,23 +19,16 @@ class PlaylistManager {
             throw IllegalArgumentException("Playlist with name '$name' already exists.")
         }
 
-        // Print the name of the playlist we are attempting to create
-        println("Creating playlist: $name")
 
         // Create a new playlist and add it to the list
         val newPlaylist = Playlist(name, mutableListOf())
         playlists.add(newPlaylist)
 
-        // Print the playlists after adding the new one
-        println("Playlists after adding new playlist:")
+
         playlists.forEach { println(it.name) }
 
         // Save the new playlist to file immediately
-        println("Saving new playlist to file...")
         savePlaylists()
-
-        // Print a message indicating successful creation
-        println("Playlist $name created.")
     }
 
 
@@ -50,18 +43,30 @@ class PlaylistManager {
         val index = playlists.indexOfFirst { it.name == name }
         if (index != -1) {
             currentPlaylistIndex = index
-            println("Switch to: $name")
         } else {
             throw IllegalArgumentException("Playlist with name '$name' not found.")
         }
     }
 
     fun renamePlaylist(oldName: String, newName: String) {
-        val playlist = playlists.find { it.name == oldName } ?:
-        throw IllegalArgumentException("Playlist with name '$oldName' not found.")
-        playlist.name = newName
-        savePlaylists()
+        val existingPlaylist = playlists.find { it.name == oldName }
+        if (existingPlaylist != null) {
+            existingPlaylist.name = newName
+            // Umbenennen der Datei auf dem Dateisystem
+            val oldFile = File("$oldName.json")
+            val newFile = File("$newName.json")
+            if (oldFile.exists()) {
+                oldFile.renameTo(newFile)
+            }
+            savePlaylists()
+        } else {
+            throw IllegalArgumentException("Playlist with name '$oldName' not found.")
+        }
     }
+
+
+
+
 
     fun deletePlaylist(playlistName: String) {
         val playlist = playlists.find { it.name == playlistName }
@@ -70,7 +75,6 @@ class PlaylistManager {
         } else {
             val playlistFile = File("$playlistName.json")
             if (!playlistFile.exists()) {
-                println("Playlist file '$playlistName.json' not found.")
             } else {
                 // Delete the playlist file from the file system
                 playlistFile.delete()
@@ -78,7 +82,6 @@ class PlaylistManager {
                 playlists.remove(playlist)
                 // Save the updated playlists immediately
                 savePlaylists()
-                println("Playlist '$playlistName' deleted successfully.")
             }
         }
     }
@@ -97,7 +100,7 @@ class PlaylistManager {
         val file = File("${playlist.name}.json")
         val jsonContent = json.encodeToString(playlist)
         file.writeText(jsonContent)
-        println("Playlist '${playlist.name}' saved successfully to ${file.name}")
+
     }
 
 
@@ -111,19 +114,16 @@ class PlaylistManager {
         } ?: return
 
         val loadedPlaylists: MutableList<Playlist> = mutableListOf()
-        println("Loading playlists:")
+
         for (file in playlistFiles) {
             try {
                 if (!file.exists()) {
-                    println("Playlist file '${file.name}' does not exist.")
                 } else { // Überprüfen, ob die Datei existiert
                     val jsonContent = file.readText()
                     val playlist = json.decodeFromString<Playlist>(jsonContent)
                     loadedPlaylists.add(playlist)
-                    println("Playlist '${playlist.name}' loaded successfully from ${file.name}")
                 }
             } catch (e: Exception) {
-                println("Failed to load playlist from ${file.name}: ${e.message}")
             }
         }
         playlists.clear()
