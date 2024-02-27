@@ -83,8 +83,9 @@ class FormManager() {
             .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         val videoType = formParameters.getOrFail("videoTypes")
         var customTypeName = formParameters.getOrFail("customType").uppercase()
-        val assignedType = assignType(videoType)
+        var assignedType = assignType(videoType)
         val typeNames = videoTypes.find { it == customTypeName }
+        val isDuplicated = VideoType.entries.find { it.name == customTypeName }
 
         if (!videoParametersAreValid(id, title, link)) {
             return false
@@ -95,6 +96,9 @@ class FormManager() {
             } else if (typeNames == null) {
                 videoTypes.add(customTypeName)
                 StorageManagerTypesFileInstance.setContent(videoTypes)
+            } else if (isDuplicated != null) {
+                    assignedType = assignType(customTypeName)
+                    customTypeName = ""
             }
         } else {
             if (assignedType == VideoType.CUSTOM) {
@@ -112,16 +116,9 @@ class FormManager() {
         val newType = formParameters.getOrFail("videoTypes")
         val customTypeName = formParameters.getOrFail("customType").uppercase()
         val assignedType = assignType(newType)
-        val isDuplicated = VideoType.entries.find { it.name == customTypeName }
 
         if (!setCustomTypeName(newType, customTypeName, assignedType)) {
             return
-        } else {
-            if (isDuplicated != null) {
-                updatedVideoValues.apply { put("newType", assignType(customTypeName)) }
-            } else {
-                updatedVideoValues.apply { put("newType", assignedType) }
-            }
         }
 
         updatedVideoValues.apply {
@@ -138,27 +135,36 @@ class FormManager() {
         assignedType: VideoType,
     ): Boolean {
         val typeNames = videoTypes.find { it == customTypeName }
+        val isDuplicated = VideoType.entries.find { it.name == customTypeName }
 
         if (newType == VideoType.CUSTOM.name) {
             if (customTypeName.isBlank()) {
                 status = "Custom type name cannot be blank!"
                 return false
             } else {
-                updatedVideoValues.apply {
-                    put("newCustomTypeName", customTypeName)
+                if (isDuplicated != null) {
+                    updatedVideoValues.apply {
+                        put("newType", assignType(customTypeName))
+                        put("newCustomTypeName", "")
+                    }
+                } else {
+                    updatedVideoValues.apply {
+                        put("newType", assignedType)
+                        put("newCustomTypeName", customTypeName)
+                    }
+                    if (typeNames == null) {
+                        videoTypes.add(customTypeName)
+                        StorageManagerTypesFileInstance.setContent(videoTypes)
+                    }
                 }
-
-                if (typeNames == null) {
-                    videoTypes.add(customTypeName)
-                    StorageManagerTypesFileInstance.setContent(videoTypes)
-                }
-
                 return true
             }
 
         } // check if the user selected a custom type (not custom itself)
         else {
             updatedVideoValues.apply {
+                put("newType", assignedType)
+
                 if (assignedType == VideoType.CUSTOM) {
                     put("newCustomTypeName", newType)
                 } else {

@@ -45,7 +45,7 @@ class StorageManagerMemoryTest {
         val videosList = StorageManagerMemoryInstance.getContent()
         val video = videosList.find { it.id == video1.id }
         assertNotNull(video)
-        assertTrue { videosList.size >= 1 }
+        assertTrue { videosList.isNotEmpty() }
     }
 
     @Test

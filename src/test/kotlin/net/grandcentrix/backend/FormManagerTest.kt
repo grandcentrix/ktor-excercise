@@ -40,8 +40,8 @@ class FormManagerTest {
     fun beforeTests() {
         val typeNamesJson = Json.encodeToJsonElement(typeNames).toString()
         File(FILE_NAME).writeText(typeNamesJson)
-        mockkObject(StorageManagerTypesFileInstance)
-        every { StorageManagerTypesFileInstance.getFile() } returns File(FILE_NAME)
+        mockkObject(StorageManagerTypesFileInstance, recordPrivateCalls = true)
+        every { StorageManagerTypesFileInstance["getFile"]() } returns File(FILE_NAME)
     }
 
     @AfterTest
@@ -94,7 +94,7 @@ class FormManagerTest {
 
         FormManagerInstance.setVideoParameters(formParameters)
 
-        // check if a custom type video added to a existing custom type is assigned correctly
+        // check if a custom type video added to an existing custom type is assigned correctly
         assertEquals(video.videoType, FormManagerInstance.video.videoType)
         assertEquals(video.customTypeName, FormManagerInstance.video.customTypeName)
     }
@@ -128,7 +128,25 @@ class FormManagerTest {
 
     @Test
     fun testSetVideoParametersDuplicatedCustomTypeName() {
-        //TODO
+        val formParameters = Parameters.build {
+            append("link", VIDEO_LINK)
+            append("title", "Test")
+            append("videoTypes", VideoType.CUSTOM.name)
+            append("customType", "MUSIC")
+        }
+        // music type already exists, it should return the video with music type instead of custom
+
+        FormManagerInstance.setVideoParameters(formParameters)
+
+        assertEquals(
+            "",
+            FormManagerInstance.video.customTypeName
+        )
+
+        assertEquals(
+            "MUSIC",
+            FormManagerInstance.video.videoType.toString()
+        )
     }
 
     @Test
@@ -233,6 +251,29 @@ class FormManagerTest {
 
         // check if custom type has correct custom type name
         assertEquals(formParameters["videoTypes"], FormManagerInstance.updatedVideoValues["newCustomTypeName"])
+    }
+
+    @Test
+    fun testSetUpdatedVideoParametersDuplicatedCustomTypeName() {
+        val formParameters = Parameters.build {
+            append("link", VIDEO_LINK)
+            append("title", "Test")
+            append("videoTypes", VideoType.CUSTOM.name)
+            append("customType", "MUSIC")
+        }
+        // music type already exists, it should return the video with music type instead of custom
+
+        FormManagerInstance.setUpdatedVideoParameters(VIDEO_ID, formParameters)
+
+        assertEquals(
+            "",
+            FormManagerInstance.updatedVideoValues["newCustomTypeName"].toString()
+        )
+
+        assertEquals(
+            "MUSIC",
+            FormManagerInstance.updatedVideoValues["newType"].toString()
+        )
     }
 
     @Test

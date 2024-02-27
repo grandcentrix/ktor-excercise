@@ -8,7 +8,6 @@ import kotlinx.serialization.json.encodeToJsonElement
 import net.grandcentrix.backend.models.StorageManagerFile.Companion.StorageManagerFileInstance
 import net.grandcentrix.backend.models.Video
 import net.grandcentrix.backend.models.VideoType
-import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import java.io.File
@@ -33,7 +32,8 @@ class StorageManagerFileTest {
         val videosJson = Json.encodeToJsonElement(video).toString()
 
         File(FILE_NAME).writeText(videosJson)
-        mockkObject(StorageManagerFileInstance)
+        mockkObject(StorageManagerFileInstance, recordPrivateCalls = true)
+        every { StorageManagerFileInstance["getFile"]() } returns File(FILE_NAME)
     }
 
     @AfterTest
@@ -43,13 +43,8 @@ class StorageManagerFileTest {
     }
 
     @Test
-    fun testGetFile() {
-
-    }
-
-    @Test
     fun testGetContent() {
-        every { StorageManagerFileInstance.getFile() } returns File(FILE_NAME)
+//        every { StorageManagerFileInstance.getFile() } returns File(FILE_NAME)
 
         val videoID = "1YBtzAAChU8" // existing in the file
         val videos = StorageManagerFileInstance.videos
@@ -61,7 +56,7 @@ class StorageManagerFileTest {
 
     @Test
     fun testSetContent() {
-        every { StorageManagerFileInstance.getFile() } returns File(FILE_NAME)
+//        every { StorageManagerFileInstance.getFile() } returns File(FILE_NAME)
         val videos = mutableListOf(video)
         StorageManagerFileInstance.setContent(videos)
         val id = StorageManagerFileInstance.getContent().find { it.id == video.id }?.id
@@ -70,7 +65,7 @@ class StorageManagerFileTest {
 
     @Test
     fun testSetItem() {
-        every { StorageManagerFileInstance.getFile() } returns File(FILE_NAME)
+//        every { StorageManagerFileInstance.getFile() } returns File(FILE_NAME)
         StorageManagerFileInstance.setItem(video)
         val id = StorageManagerFileInstance.getContent().find { it.id == video.id }?.id
         // check if contains added video
@@ -79,23 +74,17 @@ class StorageManagerFileTest {
 
     @Test
     fun testRemoveItem() {
-        every { StorageManagerFileInstance.getFile() } returns File(FILE_NAME)
+//        every { StorageManagerFileInstance.getFile() } returns File(FILE_NAME)
         StorageManagerFileInstance.removeItem(video)
         assertFails { assertContains(StorageManagerFileInstance.getContent(), video) }
     }
 
     @Test
     fun testUpdateStorage() {
-        every { StorageManagerFileInstance.getFile() } returns File(FILE_NAME)
+//        every { StorageManagerFileInstance.getFile() } returns File(FILE_NAME)
         StorageManagerFileInstance.videos.add(video)
         StorageManagerFileInstance.updateStorage()
         val id = StorageManagerFileInstance.getContent().find { it.id == video.id }?.id
         assertEquals(video.id, id)
-    }
-
-    @After
-    fun afterTests() {
-        unmockkAll()
-
     }
 }

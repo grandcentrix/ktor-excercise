@@ -13,7 +13,7 @@ import java.io.File
 import kotlin.test.AfterTest
 import kotlin.test.assertEquals
 
-class StorageManagerTypesFile {
+class StorageManagerTypesFileTest {
 
     companion object {
         val typeNames = VideoType.entries.map { it.name }.toMutableList()
@@ -24,7 +24,9 @@ class StorageManagerTypesFile {
     fun beforeTests() {
         val typeNamesJson = Json.encodeToJsonElement(typeNames).toString()
         File(FILE_NAME).writeText(typeNamesJson)
-        mockkObject(StorageManagerTypesFileInstance)
+
+        mockkObject(StorageManagerTypesFileInstance, recordPrivateCalls = true)
+        every { StorageManagerTypesFileInstance["getFile"]() } returns File(FILE_NAME)
     }
 
     @AfterTest
@@ -34,19 +36,12 @@ class StorageManagerTypesFile {
     }
 
     @Test
-    fun testGetFile() {
-        //TODO
-    }
-
-    @Test
     fun testGetContent() {
-        every { StorageManagerTypesFileInstance.getFile() } returns File(FILE_NAME)
         assertEquals(StorageManagerTypesFileInstance.getContent(), typeNames)
     }
 
     @Test
     fun testSetContent() {
-        every { StorageManagerTypesFileInstance.getFile() } returns File(FILE_NAME)
         typeNames.add("TEST")
         StorageManagerTypesFileInstance.setContent(typeNames)
     }

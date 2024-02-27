@@ -21,10 +21,10 @@ class VideoManagerTest {
 
     companion object {
 
-        const val VIDEO_ID = "1YBtzAAChU8"
-        const val VIDEO_TITLE = "Lo-fi Girl - Christmas"
-        const val VIDEO_LINK = "https://www.youtube.com/watch?v=1YBtzAAChU8"
-        const val CUSTOM_TYPE_NAME = "HOLIDAYS"
+        private const val VIDEO_ID = "1YBtzAAChU8"
+        private const val VIDEO_TITLE = "Lo-fi Girl - Christmas"
+        private const val VIDEO_LINK = "https://www.youtube.com/watch?v=1YBtzAAChU8"
+        private const val CUSTOM_TYPE_NAME = "HOLIDAYS"
         val VIDEO_TYPE = VideoType.CUSTOM
 
         val video1 = Video(
@@ -43,7 +43,6 @@ class VideoManagerTest {
             ""
         )
 
-//        val typeNames = VideoType.entries.map { it.name }.toMutableList()
         private const val FILE_NAME = "src/main/resources/testFile.json"
         val videos = mutableListOf(video1,video2)
         val videosJson = Json.encodeToJsonElement(videos).toString()
@@ -54,8 +53,8 @@ class VideoManagerTest {
         File(FILE_NAME).writeText(videosJson)
 
         //NOTE define a storage (memory or file) and mock it -> file chose
-        mockkObject(StorageManagerFileInstance)
-        every { StorageManagerFileInstance.getFile() } returns File(FILE_NAME)
+        mockkObject(StorageManagerFileInstance, recordPrivateCalls = true)
+        every { StorageManagerFileInstance["getFile"]() } returns File(FILE_NAME)
         every { StorageManagerFileInstance.videos } returns videos
 
         VideoManagerInstance.defineStorage(StorageManagerFileInstance)
@@ -70,7 +69,10 @@ class VideoManagerTest {
 
     @Test
     fun testDefineStorage() {
+        //FIXME private constructor
 
+//        VideoManagerInstance.defineStorage(StorageManagerMemoryInstance)
+//        assertEquals(StorageManagerMemoryInstance, VideoManagerInstance.storage)
     }
 
     @Test
@@ -148,25 +150,10 @@ class VideoManagerTest {
             VideoType.NEWS,
             ""
         )
-        val newsVideo = VideoManagerInstance.addToTypeList(video) //FIXME private function
+        val newsVideo = VideoManagerInstance.addToTypeList(video)
         val newsVideos = VideoManagerInstance.getVideosByType(VideoType.NEWS.name)
         assertContains(newsVideos, newsVideo)
 
-    }
-
-    @Test
-    fun testAddToTypeListNotFound() {
-        val video = Video(
-            "EeRfSNx5RhE",
-            "Test",
-            "https://www.youtube.com/watch?v=EeRfSNx5RhE",
-            VideoType.NEWS,
-            ""
-        )
-
-        val newsVideo = VideoManagerInstance.addToTypeList(video)
-        val newsVideos = VideoManagerInstance.getVideosByType(VideoType.NEWS.name)
-//        //TODO assert exception/error
     }
 
     @Test
@@ -238,7 +225,50 @@ class VideoManagerTest {
         assertIs<MusicVideo>(updatedVideoWithType)
     }
 
-    //TODO fail cases for update video
+    @Test
+    fun testUpdateVideoBlankTitle() {
+        FormManagerInstance.updatedVideoValues = mutableMapOf(
+            "id" to video2.id,
+            "newTitle" to "",
+            "newType" to VideoType.NEWS,
+            "newCustomTypeName" to ""
+        )
+
+        VideoManagerInstance.updateVideo()
+
+        val updatedVideo = VideoManagerInstance.getVideos()
+            .find { it.id == video2.id }!!
+
+        assertEquals(video2.title, updatedVideo.title)
+    }
+
+    @Test
+    fun testUpdateVideoTypeCastingFails() {
+        FormManagerInstance.updatedVideoValues = mutableMapOf(
+            "id" to video2.id,
+            "newTitle" to "",
+            "newType" to VideoType.NEWS.name, // should be VideoType not string
+            "newCustomTypeName" to ""
+        )
+
+        assertFailsWith(ClassCastException::class, "") {
+            VideoManagerInstance.updateVideo()
+        }
+    }
+
+    @Test
+    fun testUpdateVideoVideoNotFound() {
+        FormManagerInstance.updatedVideoValues = mutableMapOf(
+            "id" to "12345", // id not found
+            "newTitle" to "Test",
+            "newType" to VideoType.MUSIC,
+            "newCustomTypeName" to ""
+        )
+
+        assertFailsWith(NoSuchElementException::class, "") {
+            VideoManagerInstance.updateVideo()
+        }
+    }
 
     @Test
     fun testShuffle() {

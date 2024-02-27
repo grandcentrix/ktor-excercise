@@ -10,7 +10,7 @@ open class StorageManagerTypesFile: StorageManagerInterface<List<String>,List<St
         private const val FILE_NAME = "src/main/resources/videoTypes.json"
     }
 
-    fun getFile() = File(FILE_NAME)
+    private fun getFile() = File(FILE_NAME)
 
     override fun getContent(): List<String> {
         val fileText = getFile().readText()

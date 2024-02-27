@@ -4,19 +4,18 @@ import freemarker.cache.ClassTemplateLoader
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.config.*
 import io.ktor.server.freemarker.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.util.*
-import junit.framework.TestCase
 import net.grandcentrix.backend.models.FormActionType
 import net.grandcentrix.backend.models.Video
 import net.grandcentrix.backend.models.VideoType
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
-class RoutingTest() {
+class RoutingTest {
 
     companion object {
         const val VIDEO_ID = "1YBtzAAChU8"
@@ -42,9 +41,6 @@ class RoutingTest() {
     @Test
     fun testRoot() = testApplication {
 
-        environment {
-            config = MapApplicationConfig("ktor.environment" to "test")
-        }
         application {
             install(FreeMarker) {
                 templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
@@ -89,21 +85,21 @@ class RoutingTest() {
         }
 
         val testGetVideos = client.get("/")
-        TestCase.assertEquals(HttpStatusCode.OK,testGetVideos.status)
+        assertEquals(HttpStatusCode.OK,testGetVideos.status)
 
         val testAddVideo = client.post("/add-video") {
             setBody(listOf("link" to "https://www.youtube.com/watch?v=0MiR7bC9B5o&list=PL6NdkXsPL07KN01gH2vucrHCEyyNmVEx4&index=4&pp=iAQB8AUB", "title" to "Test").formUrlEncode())
         }
-        TestCase.assertEquals(HttpStatusCode.Found,testAddVideo.status)
+        assertEquals(HttpStatusCode.Found,testAddVideo.status)
 
         val testDeleteVideo = client.delete("/${VIDEO_ID}/delete")
-        TestCase.assertEquals(HttpStatusCode.Found,testDeleteVideo.status)
+        assertEquals(HttpStatusCode.Found,testDeleteVideo.status)
 //
 //        val testShuffle = client.get("/shuffle")
 //        assertEquals(HttpStatusCode.Found, testShuffle.status)
 
         val testGetStyle = client.get("/style.css")
-        TestCase.assertEquals(HttpStatusCode.OK,testGetStyle.status)
+        assertEquals(HttpStatusCode.OK,testGetStyle.status)
 
     }
 }

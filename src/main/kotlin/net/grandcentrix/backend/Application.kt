@@ -14,14 +14,14 @@ import net.grandcentrix.backend.plugins.configureSecurity
 import net.grandcentrix.backend.plugins.configureTemplating
 
 fun main() {
-    val saveVideos = true
+    saveVideos()
 
     if (StorageManagerTypesFileInstance.getContent().isEmpty()) {
         val videoTypeNames = VideoType.entries.map { it.name }
         StorageManagerTypesFileInstance.setContent(videoTypeNames)
     }
 
-    if (saveVideos) {
+    if (saveVideos()) {
         val videosJson = StorageManagerFileInstance.getContent()
         if (videosJson.isNotEmpty()) {
             StorageManagerMemoryInstance.setContent(videosJson)
@@ -33,6 +33,8 @@ fun main() {
     embeddedServer(Netty, port = 8080, host = "localhost", module = Application::module)
         .start(wait = true)
 }
+
+fun saveVideos(): Boolean = true
 
 fun Application.module() {
     configureSecurity()
