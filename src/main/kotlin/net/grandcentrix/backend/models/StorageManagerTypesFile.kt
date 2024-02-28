@@ -20,6 +20,12 @@ open class StorageManagerTypesFile: StorageManagerInterface<List<String>,List<St
         return Json.decodeFromString<List<String>>(fileText)
     }
 
+     fun removeItem(item: String) {
+        val types = getContent().toMutableList()
+        types.remove(item)
+        setContent(types)
+    }
+
     override fun setContent(list: List<String>) {
         val videoTypes = Json.encodeToJsonElement(list).toString()
         getFile().writeText(videoTypes)

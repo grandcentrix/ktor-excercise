@@ -78,7 +78,7 @@ class FormManager() {
     fun setVideoParameters(formParameters: Parameters): Boolean {
         val id = formParameters.getOrFail("link")
             .substringAfter("v=").substringBefore("&")
-        val link = formParameters.getOrFail("link")
+        val link = formParameters.getOrFail("link").substringBefore("&")
         val title = formParameters.getOrFail("title")
             .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         val videoType = formParameters.getOrFail("videoTypes")

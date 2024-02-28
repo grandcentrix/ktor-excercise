@@ -23,9 +23,17 @@
                         </label>
                     </#if>
                     <#if formAction["type"] == "UPDATE">
-                        <label>
-                            ${video.link}
-                        </label>
+                        <p class="actualValues" style="margin-top: 0">
+                            <label for="videoTypes">Video Link: <br> </label>
+                            <span>
+                                <a href="${video.link}">${video.link}</a>
+                            </span>
+                            <br><br>
+                            <label for="videoTypes">Current title: <br> </label>
+                            <span style="font-weight: normal">
+                                ${video.title}
+                            </span>
+                        </p>
                     </#if>
 
                     <label>
@@ -33,11 +41,12 @@
                     </label>
 
                     <#if formAction["type"] == "ADD">
-                    <p>
+                    <p style="margin-top: 0">
                         <label for="videoTypes">Choose a type:</label>
                         <select name="videoTypes" id="videoTypes">
                             <option name="type" value="${videoType}">${videoType}</option>
                         </select>
+
                         <label>
                             <input placeholder="Custom type name" type="text" name="customType">
                         </label>

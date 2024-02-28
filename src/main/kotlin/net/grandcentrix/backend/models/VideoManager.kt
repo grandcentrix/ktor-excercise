@@ -3,6 +3,7 @@ package net.grandcentrix.backend.models
 import io.ktor.server.plugins.*
 import net.grandcentrix.backend.models.FormManager.Companion.FormManagerInstance
 import net.grandcentrix.backend.models.StorageManagerMemory.Companion.StorageManagerMemoryInstance
+import net.grandcentrix.backend.models.StorageManagerTypesFile.Companion.StorageManagerTypesFileInstance
 
 open class VideoManager private constructor (
     private var storage: StorageManagerInterface<List<Video>,List<Video>>,
@@ -24,6 +25,7 @@ open class VideoManager private constructor (
     }
 
     override fun getVideos(): List<Video> {
+//        deleteEmptyCustomVideoType()
         return storage.getContent()
     }
 
@@ -162,13 +164,20 @@ open class VideoManager private constructor (
 
     override fun shuffleByType(videoType: String): String =
         when (assignType(videoType)) {
-        VideoType.MUSIC -> musicVideos
-        VideoType.NEWS -> newsVideos
-        VideoType.CUSTOM -> customTypeVideos.filter {
-            it.customTypeName == videoType
-        }
-        else -> storage.videos
-    }.map {
+            VideoType.MUSIC -> musicVideos
+            VideoType.NEWS -> newsVideos
+            VideoType.CUSTOM -> customTypeVideos.filter {
+                it.customTypeName == videoType
+            }
+        }.map {
         it.id
     }.random()
+
+    fun deleteEmptyCustomVideoType() {
+        formManager.videoTypes.map{
+            if (getVideosByType(it).isEmpty()) {
+                StorageManagerTypesFileInstance.removeItem(it)
+            }
+        }
+    }
 }

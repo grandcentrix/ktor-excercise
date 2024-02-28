@@ -163,7 +163,7 @@ form {
 }
 
 label {
-    font-size: 13px;
+    font-size: 15px;
     color: #8c560e;
     font-weight: bold;
 }
@@ -171,4 +171,11 @@ label {
 select {
     border: 1px solid #efc595;
     padding: 5px;
+    margin-bottom: 10px;
+}
+
+.actualValues a, span  {
+    font-weight: normal;
+    font-size: 15px;
+    color:#3a5345;
 }

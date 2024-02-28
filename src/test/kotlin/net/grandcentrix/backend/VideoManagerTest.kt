@@ -68,14 +68,6 @@ class VideoManagerTest {
     }
 
     @Test
-    fun testDefineStorage() {
-        //FIXME private constructor
-
-//        VideoManagerInstance.defineStorage(StorageManagerMemoryInstance)
-//        assertEquals(StorageManagerMemoryInstance, VideoManagerInstance.storage)
-    }
-
-    @Test
     fun testGetVideos() {
         val videosList = VideoManagerInstance.getVideos()
         val actual = videosList.find{it.id == video1.id}!!
