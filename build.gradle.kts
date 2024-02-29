@@ -40,6 +40,8 @@ dependencies {
     testImplementation("io.ktor:ktor-client-content-negotiation-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     testImplementation("io.mockk:mockk:1.13.8")
+    testImplementation("io.ktor:ktor-serialization-kotlinx-xml:$ktor_version")
+
 
 
 }

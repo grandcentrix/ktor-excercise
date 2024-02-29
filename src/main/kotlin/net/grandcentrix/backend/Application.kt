@@ -24,8 +24,6 @@ fun main() {
 fun saveVideos(): Boolean = true
 
 fun storageSetup() {
-    saveVideos()
-
     // populates video types file
     if (StorageManagerTypesFileInstance.getContent().isEmpty()) {
         val videoTypeNames = VideoType.entries.map { it.name }

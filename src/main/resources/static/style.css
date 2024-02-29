@@ -19,13 +19,18 @@ h1 {
     text-align: center;
     text-transform: uppercase;
     font-size: 30px;
-    background-color: bisque;
-    padding: 40px;
+    background-color: #205839d6;
+    padding: 45px;
     color: #8c560d;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    column-gap: 20px;
 }
 
 h1 a {
-    font-size: 30px;
+    font-size: 36px;
+    color: #c0e1ce;
 }
 
 .container {
@@ -38,7 +43,7 @@ h1 a {
     width: 100%;
 }
 
-.container-left {display: flex;flex-direction: column;width: 60%;/* justify-content: flex-start; */}
+.container-left {display: flex;flex-direction: column;width: 60%;/* background: bisque; *//* justify-content: center; */position: sticky;top: 0;}
 
 .container-right {
     width: 25%;
@@ -78,7 +83,7 @@ h1 a {
 }
 
 .videos-list li:hover {
-    background: bisque;
+    background: #ffe4c4ad;
 }
 
 .videos-list li a.button-type {
@@ -99,25 +104,28 @@ h1 a {
 }
 
 .button:hover {
-    background-color: #efc594;
+    background-color: #efc595;
 }
 
 .shuffle {
-    background-color: #67a5bd;
-    color: white;
-    font-size: 20px;
+    background-color: #c0e1ce;
+    color: #3a5345;
+    font-size: 18px;
     text-decoration: none;
-    border: none;
+    border: 1px solid #76b993;
     text-transform: uppercase;
-    border-radius: 0;
-    padding: 15px;
-    margin-top: 30px;
+    padding: 25px;
+    /* margin-top: 30px; */
     text-align: center;
+    border-radius: 0 0 20px 20px;
+    border-top: none;
 }
 
 .shuffle:hover {
-    background-color: #598ea2;
-    border: none;
+    background-color: #9bc4ac;
+    /* color: #c0e1ce; */
+    border: 1px solid #76b993;
+    border-top: none;
 }
 
 section.new-video {
@@ -150,11 +158,13 @@ form input[type="text"], form input[type="submit"] {
 form input[type="submit"] {
     width: 100%;
     letter-spacing: 0.3px;
-    color: #8c560d;
+    color: #ffffff;
     font-weight: bold;
     font-size: 15px;
     text-transform: none;
-    background-color: bisque;
+    background-color: #df889b;
+    border: none;
+    cursor: pointer;
 }
 
 form {
@@ -172,10 +182,20 @@ select {
     border: 1px solid #efc595;
     padding: 5px;
     margin-bottom: 10px;
+    color: #757575;
 }
 
 .actualValues a, span  {
     font-weight: normal;
     font-size: 15px;
     color:#3a5345;
+}
+
+img.logo {
+    width: 36px;
+    mix-blend-mode: soft-light;
+}
+
+iframe {
+    border: none;
 }

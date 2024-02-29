@@ -1,8 +1,8 @@
 package net.grandcentrix.backend.plugins
 
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.freemarker.*
+import io.ktor.server.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -12,6 +12,8 @@ import net.grandcentrix.backend.models.VideoManager
 
 fun Application.configureRouting(videoManager: VideoManager, formManager: FormManager) {
     routing {
+        staticResources("/static", "static")
+
         route("/") {
             get {
                 call.respond(FreeMarkerContent("index.ftl",
@@ -42,10 +44,6 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
             get("{videoType}/shuffle") {
                 val videoType = call.parameters.getOrFail<String>("videoType")
                 call.respondRedirect("/$videoType/videos")
-            }
-
-            get("/style.css") {
-                call.respond(FreeMarkerContent("style.css", null, contentType = ContentType.Text.CSS))
             }
 
             get("/{videoType}/videos") {
