@@ -11,6 +11,7 @@ import net.grandcentrix.backend.models.VideoManager.Companion.VideoManagerInstan
 import net.grandcentrix.backend.models.VideoType
 import net.grandcentrix.backend.plugins.configureRouting
 import net.grandcentrix.backend.plugins.configureSecurity
+import net.grandcentrix.backend.plugins.configureStatusPages
 import net.grandcentrix.backend.plugins.configureTemplating
 
 fun main() {
@@ -44,4 +45,5 @@ fun Application.module() {
     configureSecurity()
     configureTemplating()
     configureRouting(VideoManagerInstance, FormManagerInstance)
+    configureStatusPages()
 }

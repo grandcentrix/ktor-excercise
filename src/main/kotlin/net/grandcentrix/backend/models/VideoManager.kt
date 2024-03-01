@@ -8,7 +8,7 @@ import net.grandcentrix.backend.models.StorageManagerTypesFile.Companion.Storage
 open class VideoManager private constructor (
     private var storage: StorageManagerInterface<List<Video>,List<Video>>,
     private val formManager: FormManager
-) : VideoManagerInterface {
+) {
 
     companion object {
         val VideoManagerInstance: VideoManager =
@@ -18,13 +18,13 @@ open class VideoManager private constructor (
         private var customTypeVideos = mutableListOf<CustomTypeVideo>()
     }
 
-    override fun defineStorage (
+     fun defineStorage (
         storageType: StorageManagerInterface<List<Video>,List<Video>>
     ) {
         storage = storageType
     }
 
-    override fun getVideos(): List<Video> {
+     fun getVideos(): List<Video> {
 //        deleteEmptyCustomVideoType()
         return storage.getContent()
     }
@@ -45,7 +45,7 @@ open class VideoManager private constructor (
         else -> Video("", "", "", VideoType.CUSTOM, "")
     }
 
-    override fun loadVideosToTypeList(videos: List<Video>) {
+     fun loadVideosToTypeList(videos: List<Video>) {
         videos.map { it ->
             when (it.videoType) {
                 VideoType.MUSIC -> musicVideos = videos.mapNotNull {
@@ -62,7 +62,7 @@ open class VideoManager private constructor (
         }
     }
 
-    override fun getVideosByType(videoType: String): MutableList<out Video> {
+     fun getVideosByType(videoType: String): MutableList<out Video> {
         val assignedType = assignType(videoType)
         return when (assignedType) {
             VideoType.MUSIC -> musicVideos
@@ -83,7 +83,7 @@ open class VideoManager private constructor (
         }
     }
 
-    override fun findVideo(id: String): Video? = storage.videos.find { it.id == id }
+     fun findVideo(id: String): Video? = storage.videos.find { it.id == id }
 
      fun addToTypeList(video: Video): Video {
         when (video) {
@@ -95,7 +95,7 @@ open class VideoManager private constructor (
         return video
     }
 
-    override fun addVideo() {
+     fun addVideo() {
         val video = formManager.video
         if (findVideo(video.id) != null) {
             formManager.status = "Video already exists!"
@@ -109,7 +109,7 @@ open class VideoManager private constructor (
         formManager.status = "Video added!"
     }
 
-    override fun deleteVideo(id: String) {
+     fun deleteVideo(id: String) {
         val video = findVideo(id)!!
         if (!inputIsValid(id)) {
             return
@@ -134,7 +134,7 @@ open class VideoManager private constructor (
         return true
     }
 
-    override fun updateVideo() {
+     fun updateVideo() {
         val updatedVideoValues = formManager.updatedVideoValues
         val video = storage.videos.single { it.id == updatedVideoValues["id"] } //TODO catch exception?
         val previousType = video.videoType
@@ -160,9 +160,9 @@ open class VideoManager private constructor (
         addToTypeList(video.toType())
     }
 
-    override fun shuffle(): String  = storage.getContent().map { it.id }.random()
+     fun shuffle(): String  = storage.getContent().map { it.id }.random()
 
-    override fun shuffleByType(videoType: String): String =
+     fun shuffleByType(videoType: String): String =
         when (assignType(videoType)) {
             VideoType.MUSIC -> musicVideos
             VideoType.NEWS -> newsVideos
