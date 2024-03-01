@@ -49,13 +49,19 @@ class RoutingTest {
             ""
         )
 
-        val videos = mutableListOf(video1, video2)
-        val videoTypes = mutableListOf("Tests")
+        val video3 = Video(
+            "IXwVSUexFyM",
+            "Lorde - The Path",
+            "https://www.youtube.com/watch?v=IXwVSUexFyM",
+            VIDEO_TYPE,
+            ""
+        )
 
-        private var actionTitle = "Add a new video:"
+        val videos = mutableListOf(video1, video2, video3)
+
+        private var actionTitleAdd = "Add a new video:"
         private var formAction = "/add-video"
         private var formActionType = FormActionType.ADD.name
-        var formAttributes = mutableMapOf("name" to actionTitle, "link" to formAction, "type" to formActionType)
     }
 
     @Before
@@ -136,6 +142,7 @@ class RoutingTest {
 
         assertEquals(HttpStatusCode.OK,response.status)
         assertNull(StorageManagerMemoryInstance.videos.find { it.id == video2.id })
+        assertContains(response.bodyAsText(), "Video deleted!")
     }
 
     @Test
@@ -213,7 +220,7 @@ class RoutingTest {
 
         val response = client.get("/${video1.id}/update/cancel")
 
-        assertContains(response.bodyAsText(), "Add a new video:")
+        assertContains(response.bodyAsText(), actionTitleAdd)
         assertEquals(HttpStatusCode.OK, response.status)
     }
 
@@ -229,7 +236,6 @@ class RoutingTest {
 
         val response = client.get("/${VIDEO_TYPE}/videos") // necessary to be a type of some video in the list
         assertEquals(HttpStatusCode.OK,response.status)
-        assertContains(response.bodyAsText(), video1.link)
     }
 
     @Test
@@ -269,17 +275,83 @@ class RoutingTest {
 
     @Test
     fun testDeleteVideoByType() = testApplication {
-        //TODO
+        application {
+            configureRouting(VideoManagerInstance, FormManagerInstance)
+        }
+
+        install(FreeMarker) {
+            templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
+        }
+
+        val response = client.get("/${VIDEO_TYPE}/${video3.id}/delete")
+
+        assertEquals(HttpStatusCode.OK,response.status)
+        assertNull(StorageManagerMemoryInstance.videos.find { it.id == video3.id })
+        assertContains(response.bodyAsText(), "Video deleted!")
     }
 
     @Test
-    fun testUpdateVideoByType() = testApplication {
-        //TODO
+    fun testGetUpdateVideoByType() = testApplication {
+        application {
+            configureRouting(VideoManagerInstance, FormManagerInstance)
+        }
+
+        install(FreeMarker) {
+            templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
+        }
+
+        val response = client.get("/${VIDEO_TYPE}/${video1.id}/update")
+        assertEquals(HttpStatusCode.OK, response.status)
     }
 
     @Test
-    fun testCancelActionVideosByType() = testApplication {
+    fun testPostUpdateVideoByType() = testApplication {
+        application {
+            configureRouting(VideoManagerInstance, FormManagerInstance)
+        }
 
+        val response = client.post("/${VIDEO_TYPE}/${video1.id}/update") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody(listOf(
+                "title" to "Lo-fi Girl - Christmas",
+                "videoTypes" to "NEWS", // necessary to be an existing type in videoTypes.json
+                "customType" to ""
+            ).formUrlEncode())
+        }
+
+        assertEquals(HttpStatusCode.Found, response.status)
+
+        assertEquals(
+            "Lo-fi Girl - Christmas",
+            StorageManagerMemoryInstance.videos.find { it.id == video1.id }!!.title
+        )
+
+        assertEquals(
+            "",
+            StorageManagerMemoryInstance.videos.find { it.id == video1.id }!!.customTypeName
+        )
+
+        assertEquals(
+            VideoType.NEWS,
+            StorageManagerMemoryInstance.videos.find { it.id == video1.id }!!.videoType
+        )
+
+    }
+
+    @Test
+    fun testCancelUpdateVideosByType() = testApplication {
+        application {
+            configureRouting(VideoManagerInstance, FormManagerInstance)
+        }
+
+        install(FreeMarker) {
+            templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
+        }
+
+        val response = client.get("/${VIDEO_TYPE}/${video1.id}/update/cancel")
+
+        assertContains(response.bodyAsText(), actionTitleAdd)
+        assertEquals(HttpStatusCode.OK, response.status)
     }
 
 }

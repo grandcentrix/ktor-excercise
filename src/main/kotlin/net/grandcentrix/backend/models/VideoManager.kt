@@ -153,11 +153,11 @@ open class VideoManager private constructor (
         storage.updateStorage() // add video to new type list
         formManager.status = "Video updated!"
 
-        if (video.videoType != previousType) {
-            addToTypeList(video.toType())
-            return
-        }
-        addToTypeList(video)
+//        if (video.videoType != previousType) {
+//            addToTypeList(video.toType())
+//            return
+//        }
+        addToTypeList(video.toType())
     }
 
     override fun shuffle(): String  = storage.getContent().map { it.id }.random()
