@@ -1,6 +1,6 @@
 val ktor_version = "1.5"
 val kotlin_version = "1.8.0"
-val logback_version = "1.4.2"
+val logback_version = "1.4.14"
 
 plugins {
     kotlin("jvm") version "1.8.0"
@@ -32,6 +32,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
     testImplementation("com.willowtreeapps.assertk:assertk:0.28.0")
+    testImplementation("io.mockk:mockk:1.12.0")
     testImplementation(kotlin("test"))
 }
 

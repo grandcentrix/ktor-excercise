@@ -67,6 +67,25 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                             }
                         }
 
+                        form(action = "/renamePlaylist", method = FormMethod.post) {
+                            select {
+                                name = "playlistNameToRename"
+                                playlistManager.getAllPlaylists().forEach { playlist ->
+                                    option {
+                                        value = playlist.name
+                                        +playlist.name
+                                    }
+                                }
+                            }
+                            textInput {
+                                name = "newPlaylistName"
+                                placeholder = "Enter new playlist name"
+                            }
+                            submitInput {
+                                value = "Rename Playlist"
+                            }
+                        }
+
                         form(action = "/deletePlaylist", method = FormMethod.post) {
                             select {
                                 name = "playlistNameToDelete"
@@ -124,24 +143,6 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                     }
                 }
 
-                form(action = "/renamePlaylist", method = FormMethod.post) {
-                    select {
-                        name = "playlistNameToRename"
-                        playlistManager.getAllPlaylists().forEach { playlist ->
-                            option {
-                                value = playlist.name
-                                +playlist.name
-                            }
-                        }
-                    }
-                    textInput {
-                        name = "newPlaylistName"
-                        placeholder = "Enter new playlist name"
-                    }
-                    submitInput {
-                        value = "Rename Playlist"
-                    }
-                }
 
 
                 form(action = "/deleteVideoByNumber", method = FormMethod.post) {

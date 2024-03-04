@@ -44,7 +44,7 @@ class InMemoryYouTubeManagerClass private constructor(private val playlistManage
 
 
     override fun addVideoToPlaylist(videoId: String, customName: String?, playlistName: String) {
-        playlistManager.loadPlaylists()
+
 
         val playlists = playlistManager.getAllPlaylists()
         val playlist = playlists.find { it.name == playlistName }
