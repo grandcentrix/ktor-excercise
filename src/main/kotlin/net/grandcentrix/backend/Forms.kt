@@ -4,7 +4,7 @@ import io.ktor.server.application.*
 import io.ktor.server.html.*
 import io.ktor.server.routing.*
 import kotlinx.html.*
-fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playlistManager: PlaylistManager) {
+fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playlistManager: PlayListInterface) {
     configurePostRoutes(youtubeManager, playlistManager)
 
     routing {

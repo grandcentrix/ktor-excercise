@@ -1,1 +1,5 @@
-[{"videoId":"mFbILexYSQg","customName":"fdsf"},{"videoId":"VIDEO_ID_1","customName":"Video 1"},{"videoId":"VIDEO_ID_1","customName":"Video 1"},{"videoId":"VIDEO_ID_1","customName":"Video 1"},{"videoId":"VIDEO_ID_1","customName":"Video 1"},{"videoId":"VIDEO_ID_1","customName":"Video 1"}]
+[
+  {"videoId": "mFbILexYSQg", "customName": "Video 1"},
+  {"videoId": "VIDEO_ID_2", "customName": "Video 2"},
+  {"videoId": "VIDEO_ID_3", "customName": "Video 3"}
+]

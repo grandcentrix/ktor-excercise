@@ -14,7 +14,7 @@ import java.net.URL
 
 
 
-fun Application.configurePostRoutes(youtubeManager: YouTubeManagerInterface, playlistManager: PlaylistManager) {
+fun Application.configurePostRoutes(youtubeManager: YouTubeManagerInterface, playlistManager: PlayListInterface) {
     routing {
         addVideo(youtubeManager)
         addVideos(youtubeManager)
@@ -31,7 +31,7 @@ fun Application.configurePostRoutes(youtubeManager: YouTubeManagerInterface, pla
 }
 
 
-private fun Routing.deletePlaylist(playlistManager: PlaylistManager) {
+private fun Routing.deletePlaylist(playlistManager: PlayListInterface) {
     post("/deletePlaylist") {
         val parameters = call.receiveParameters()
         val playlistNameToDelete = parameters["playlistNameToDelete"]
@@ -50,7 +50,7 @@ private fun Routing.deletePlaylist(playlistManager: PlaylistManager) {
     }
 }
 
-private fun Routing.createPlaylist(playlistManager: PlaylistManager) {
+private fun Routing.createPlaylist(playlistManager: PlayListInterface) {
     post("/createPlaylist") {
         val parameters = call.receiveParameters()
         val playlistName = parameters["playlistName"] ?: return@post // Ensure playlist name is provided
@@ -66,7 +66,7 @@ private fun Routing.createPlaylist(playlistManager: PlaylistManager) {
     }
 }
 
-private fun Routing.switchPlaylist(playlistManager: PlaylistManager) {
+private fun Routing.switchPlaylist(playlistManager: PlayListInterface) {
     post("/switchPlaylist") {
         val parameters = call.receiveParameters()
         val playlistName = parameters["playlistName"] ?: return@post
@@ -75,7 +75,7 @@ private fun Routing.switchPlaylist(playlistManager: PlaylistManager) {
     }
 }
 
-private fun Routing.userPlaylistPage(playlistManager: PlaylistManager) {
+private fun Routing.userPlaylistPage(playlistManager: PlayListInterface) {
     get("/userPlaylistPage") {
         val currentPlaylist = playlistManager.getCurrentPlaylist()
         playlistManager.loadPlaylists()
@@ -102,7 +102,7 @@ private fun Routing.userPlaylistPage(playlistManager: PlaylistManager) {
     }
 }
 
-private fun Routing.removeVideo(playlistManager: PlaylistManager) {
+private fun Routing.removeVideo(playlistManager: PlayListInterface) {
     post("/removeVideo") {
         val parameters = call.receiveParameters()
         val videoIndexToRemove = parameters["videoIndexToRemove"]?.toIntOrNull()
@@ -241,7 +241,7 @@ private fun Routing.addVideoToPlaylist(youtubeManager: YouTubeManagerInterface) 
     }
 }
 
-private fun Routing.renamePlaylist(playlistManager: PlaylistManager) {
+private fun Routing.renamePlaylist(playlistManager: PlayListInterface) {
     post("/renamePlaylist") {
         val parameters = call.receiveParameters()
         val oldName = parameters["playlistNameToRename"]
