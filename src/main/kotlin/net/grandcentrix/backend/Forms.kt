@@ -101,7 +101,6 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                             }
                         }
 
-
                         form(action = "/removeVideo", method = FormMethod.post) {
                             val currentPlaylist = playlistManager.getCurrentPlaylist()
                             if (currentPlaylist != null) {
@@ -109,8 +108,8 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                                     name = "videoIndexToRemove"
                                     currentPlaylist.videos.forEachIndexed { index, videoInfo ->
                                         option {
-                                            value = index.toString() // Index als Wert setzen
-                                            +if (videoInfo.customName.isNotEmpty()) videoInfo.customName else videoInfo.videoId
+                                            value = index.toString() // Index as value
+                                            +if (videoInfo.customName.isNotEmpty()) "${videoInfo.customName} (${videoInfo.videoId})" else videoInfo.videoId
                                         }
                                     }
                                 }
@@ -119,6 +118,10 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                                 }
                             }
                         }
+
+
+
+
 
 
 
@@ -172,21 +175,18 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
 
 
 
+
                 form(action = "/addVideoToPlaylist", method = FormMethod.post) {
                     select {
                         name = "videoId" // Set the name attribute to "videoId"
                         // Populate the dropdown with video numbers and corresponding custom names or video IDs
                         youtubeManager.getYoutubeLinks().forEachIndexed { index, videoInfo ->
                             option {
-                                val videoId = videoInfo.videoId // Extracted video ID
-                                value = videoId // Set the value to the video ID
-                                +if (videoInfo.customName.isNotEmpty()) "${videoInfo.customName} ($videoId)" else videoId
+                                val nameToDisplay = if (videoInfo.customName.isNotEmpty()) videoInfo.customName else videoInfo.videoId ?: "No Name Available"
+                                value = videoInfo.videoId // Set the value to the video ID
+                                +nameToDisplay
                             }
                         }
-                    }
-                    textInput {
-                        name = "customName"
-                        placeholder = "Enter custom name (optional)"
                     }
                     select {
                         name = "playlistName"
@@ -202,6 +202,10 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                         value = "Add Video to Playlist"
                     }
                 }
+
+
+
+
 
 
                 form(action = "/renameVideoByNumber", method = FormMethod.post) {

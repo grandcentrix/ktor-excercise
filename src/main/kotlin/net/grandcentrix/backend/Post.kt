@@ -116,12 +116,16 @@ private fun Routing.removeVideo(playlistManager: PlayListInterface) {
                 call.respond(HttpStatusCode.BadRequest, "Invalid video index: $videoIndexToRemove")
             } else {
                 val removedVideo = currentPlaylist.videos.removeAt(videoIndexToRemove)
+                val videoId = removedVideo.videoId
+                val customName = removedVideo.customName
                 playlistManager.savePlaylists()
                 call.respondRedirect("/")
             }
         }
     }
 }
+
+
 
 private fun Routing.renameVideoByNumber(youtubeManager: YouTubeManagerInterface) {
     post("/renameVideoByNumber") {
@@ -187,7 +191,8 @@ private fun Routing.addVideos(youtubeManager: YouTubeManagerInterface) {
 }
 
 
-private fun Routing.addVideo(youtubeManager:YouTubeManagerInterface) {
+
+private fun Routing.addVideo(youtubeManager: YouTubeManagerInterface) {
     post("/addVideo") {
         val parameters = call.receiveParameters()
         val newVideoUrl = parameters["newVideoUrl"]
@@ -215,6 +220,7 @@ private fun Routing.addVideo(youtubeManager:YouTubeManagerInterface) {
         }
     }
 }
+
 
 
 private fun Routing.addVideoToPlaylist(youtubeManager: YouTubeManagerInterface) {
