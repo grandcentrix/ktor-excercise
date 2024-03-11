@@ -118,21 +118,22 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                                 }
                             }
                         }
-
-
-
-
-
-
-
                     }
                 }
 
                 h3 { +"Link to each MV" }
+                val videosPerPage = 5
+                val totalVideos = youtubeManager.getYoutubeLinks().size
+                val totalPages = (totalVideos + videosPerPage - 1) / videosPerPage // Calculate total pages
+                val currentPage = call.parameters["page"]?.toIntOrNull() ?: 1 // Get current page or default to 1
+
+                val startIndex = (currentPage - 1) * videosPerPage
+                val endIndex = minOf(currentPage * videosPerPage, totalVideos)
+
                 ul {
-                    youtubeManager.getYoutubeLinks().forEachIndexed { index, videoInfo ->
+                    youtubeManager.getYoutubeLinks().subList(startIndex, endIndex).forEachIndexed { index, videoInfo ->
                         li {
-                            val videoNumber = index + 1
+                            val videoNumber = index + 1 + startIndex
                             val videoUrl = "https://www.youtube.com/watch?v=${videoInfo.videoId}"
                             +"$videoNumber. "
                             a(href = videoUrl, target = "_blank") { +if (videoInfo.customName.isNotEmpty()) videoInfo.customName else videoUrl }
@@ -145,6 +146,20 @@ fun Application.configureRouting(youtubeManager: YouTubeManagerInterface, playli
                         }
                     }
                 }
+
+                if (totalPages > 1) {
+                    p {
+                        if (currentPage > 1) {
+                            a(href = "?page=${currentPage - 1}") { +"Previous" }
+                        }
+                        +" Page $currentPage of $totalPages "
+                        if (currentPage < totalPages) {
+                            a(href = "?page=${currentPage + 1}") { +"Next" }
+                        }
+                    }
+                }
+
+
 
 
 

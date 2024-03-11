@@ -12,4 +12,5 @@ fun Application.module(persistLinks: Boolean) {
     val playlistManager = youtubeManager as PlayListInterface
 
     configureRouting(youtubeManager = youtubeManager, playlistManager = playlistManager)
+
 }

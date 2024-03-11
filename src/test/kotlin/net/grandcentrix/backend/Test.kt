@@ -7,6 +7,16 @@ import org.junit.jupiter.api.Assertions.assertTrue
 
 class YouTubeManagerTest {
 
+    fun getYouTubeManager(persistLinks: Boolean): PlayListInterface {
+        return if (persistLinks) {
+            JsonYouTubeManagerObjectClass.JsonYouTubeManagerObjectInstance
+        } else {
+            InMemoryYouTubeManagerClass.inMemoryYouTubeManagerInstance
+        }
+    }
+
+
+
     @Test
     fun testJsonYouTubeManager() {
         // Mocking the YouTubeManager

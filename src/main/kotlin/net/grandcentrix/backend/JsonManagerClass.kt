@@ -18,7 +18,6 @@ class JsonYouTubeManagerObjectClass private constructor() :
     private val youtubeLinks = mutableListOf<VideoInfo>()
 
     init {
-        loadPlaylists()
         loadYouTubeLinks()
         loadPlaylists()
     }
@@ -93,11 +92,21 @@ class JsonYouTubeManagerObjectClass private constructor() :
     fun loadYouTubeLinks() {
         val file = File("youtubeLinks.json")
         if (file.exists()) {
-            youtubeLinks.clear()
-            val jsonContent = file.readText()
-            youtubeLinks.addAll(json.decodeFromString<List<VideoInfo>>(jsonContent))
+            try {
+                val jsonContent = file.readText()
+                val videoInfoList = json.decodeFromString<List<VideoInfo>>(jsonContent)
+                youtubeLinks.addAll(videoInfoList)
+            } catch (e: Exception) {
+                println("Error loading YouTube links: ${e.message}")
+                e.printStackTrace()
+            }
+        } else {
+            println("YouTube links file not found.")
         }
     }
+
+
+
 
     override fun saveYouTubeLinksJson() {
         val file = File("youtubeLinks.json")
