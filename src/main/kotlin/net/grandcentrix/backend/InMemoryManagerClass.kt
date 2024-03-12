@@ -7,7 +7,7 @@ import java.net.URL
 
 
 class InMemoryYouTubeManagerClass private constructor() :
-    YouTubeManagerInterface,PlayListInterface {
+    YouTubeManagerInterface,PlayListInterface,TagInterface {
     companion object {
         val inMemoryYouTubeManagerInstance: InMemoryYouTubeManagerClass = InMemoryYouTubeManagerClass()
     }
@@ -162,6 +162,23 @@ class InMemoryYouTubeManagerClass private constructor() :
     override fun loadPlaylists() {
         // No operation needed here as we don't load playlists from file
     }
+    override fun addTagToVideo(videoId: String, tagName: String) {
+        val video = youtubeLinks.find { it.videoId == videoId }
+        video?.tags?.add(tagName)
+        saveYouTubeLinksJson()
+    }
 
-    // Implement other methods for video management
+    override fun removeTagFromVideo(videoId: String, tagName: String) {
+        val video = youtubeLinks.find { it.videoId == videoId }
+        video?.tags?.remove(tagName)
+        saveYouTubeLinksJson()
+    }
+
+    override fun getVideosByTag(tagName: String): List<VideoInfo> {
+        return youtubeLinks.filter { tagName in it.tags }
+    }
+    override fun getAllTags(): List<String> {
+        return youtubeLinks.flatMap { it.tags }.distinct()
+    }
+
 }

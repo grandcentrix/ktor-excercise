@@ -27,9 +27,63 @@ fun Application.configurePostRoutes(youtubeManager: YouTubeManagerInterface, pla
         createPlaylist(playlistManager)
         deletePlaylist(playlistManager)
         renamePlaylist(playlistManager)
+        addTagToVideo(youtubeManager)
+        filterVideosByTag(youtubeManager)
     }
 }
 
+
+
+private fun Routing.addTagToVideo(youtubeManager: YouTubeManagerInterface) {
+    post("/addTagToVideo") {
+        val parameters = call.receiveParameters()
+        val videoId = parameters["videoId"]
+        val tagName = parameters["tagName"]
+
+        if (videoId != null && tagName != null && tagName.isNotBlank()) {
+            try {
+                youtubeManager.addTagToVideo(videoId, tagName)
+                call.respondRedirect("/")
+            } catch (e: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, "Error adding tag to video: ${e.message}")
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, "Internal server error: ${e.message}")
+                call.application.log.error("Error adding tag to video", e)
+            }
+        } else {
+            call.respond(HttpStatusCode.BadRequest, "Invalid request parameters")
+        }
+        call.respondRedirect("/")
+    }
+}
+
+private fun Routing.filterVideosByTag(youtubeManager: YouTubeManagerInterface) {
+    post("/filterVideosByTag") {
+        val parameters = call.receiveParameters()
+        val tagToFilter = parameters["tagToFilter"]
+
+        if (tagToFilter != null && tagToFilter.isNotBlank()) {
+            val videosWithTag = youtubeManager.getVideosByTag(tagToFilter)
+            call.respondHtml {
+                body {
+                    h3 { +"Videos with tag: $tagToFilter" }
+                    ul {
+                        videosWithTag.forEach { videoInfo ->
+                            li {
+                                val videoUrl = "https://www.youtube.com/watch?v=${videoInfo.videoId}"
+                                a(href = videoUrl, target = "_blank") { +if (videoInfo.customName.isNotEmpty()) videoInfo.customName else videoUrl }
+
+                            }
+                        }
+                    }
+                }
+            }
+            call.respondRedirect("/")
+        } else {
+            call.respond(HttpStatusCode.BadRequest, "Invalid tag to filter")
+        }
+    }
+}
 
 private fun Routing.deletePlaylist(playlistManager: PlayListInterface) {
     post("/deletePlaylist") {
@@ -266,6 +320,10 @@ private fun Routing.renamePlaylist(playlistManager: PlayListInterface) {
         }
     }
 
+
+
 }
+
+
 
 

@@ -7,7 +7,7 @@ import java.io.File
 import java.net.URL
 
 class JsonYouTubeManagerObjectClass private constructor() :
-    YouTubeManagerInterface,PlayListInterface {
+    YouTubeManagerInterface,PlayListInterface,TagInterface {
     companion object {
         val JsonYouTubeManagerObjectInstance: JsonYouTubeManagerObjectClass = JsonYouTubeManagerObjectClass()
     }
@@ -239,6 +239,27 @@ class JsonYouTubeManagerObjectClass private constructor() :
     override fun savePlaylists() {
         playlists.forEach { savePlaylistToFile(it) }
     }
-}
+
+    override fun addTagToVideo(videoId: String, tagName: String) {
+        val video = youtubeLinks.find { it.videoId == videoId }
+        video?.tags?.add(tagName)
+        saveYouTubeLinksJson()
+    }
+
+    override fun removeTagFromVideo(videoId: String, tagName: String) {
+        val video = youtubeLinks.find { it.videoId == videoId }
+        video?.tags?.remove(tagName)
+        saveYouTubeLinksJson()
+    }
+
+    override fun getVideosByTag(tagName: String): List<VideoInfo> {
+        return youtubeLinks.filter { tagName in it.tags }
+    }
+
+        override fun getAllTags(): List<String> {
+            return youtubeLinks.flatMap { it.tags }.distinct()
+    }
+    }
+
 
 
