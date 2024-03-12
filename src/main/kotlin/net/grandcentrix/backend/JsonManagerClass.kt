@@ -16,6 +16,7 @@ class JsonYouTubeManagerObjectClass private constructor() :
     private val playlists = mutableListOf<Playlist>()
     private var currentPlaylistIndex: Int = -1
     private val youtubeLinks = mutableListOf<VideoInfo>()
+    private val videosFile = File("src/main/resources/youtubeLinks.json")
 
     init {
         loadYouTubeLinks()
@@ -90,10 +91,9 @@ class JsonYouTubeManagerObjectClass private constructor() :
     }
 
     fun loadYouTubeLinks() {
-        val file = File("youtubeLinks.json")
-        if (file.exists()) {
+        if (videosFile.exists()) {
             try {
-                val jsonContent = file.readText()
+                val jsonContent = videosFile.readText()
                 val videoInfoList = json.decodeFromString<List<VideoInfo>>(jsonContent)
                 youtubeLinks.addAll(videoInfoList)
             } catch (e: Exception) {
@@ -109,9 +109,8 @@ class JsonYouTubeManagerObjectClass private constructor() :
 
 
     override fun saveYouTubeLinksJson() {
-        val file = File("youtubeLinks.json")
         val jsonContent = json.encodeToString(youtubeLinks)
-        file.writeText(jsonContent)
+        videosFile.writeText(jsonContent)
     }
 
     override fun validateVideoUrl(newVideoUrl: String?): Pair<HttpStatusCode, String>? {
@@ -199,13 +198,13 @@ class JsonYouTubeManagerObjectClass private constructor() :
     }
 
     override fun savePlaylistToFile(playlist: Playlist) {
-        val file = File("${playlist.name}.json")
+        val file = File("src/main/resources/playlists/${playlist.name}.json")
         val jsonContent = json.encodeToString(playlist)
         file.writeText(jsonContent)
     }
 
     override fun loadPlaylists() {
-        val playlistFiles = File(".").listFiles { file ->
+        val playlistFiles = File("src/main/resources/playlists").listFiles { file ->
             file.isFile && file.extension == "json"
         } ?: return
 
