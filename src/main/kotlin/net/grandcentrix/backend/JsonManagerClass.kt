@@ -1,10 +1,14 @@
 package net.grandcentrix.backend
 
 import io.ktor.http.*
+import io.ktor.util.*
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.net.URL
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 class JsonYouTubeManagerObjectClass private constructor() :
     YouTubeManagerInterface,PlayListInterface,TagInterface {
@@ -36,8 +40,12 @@ class JsonYouTubeManagerObjectClass private constructor() :
     override fun addVideoToPlaylist(videoId: String, customName: String?, playlistName: String) {
         loadPlaylists()
 
+        //FIXME maybe this is unnecessary? I guess you can use the variable from the line 16 directly
         val playlists = getAllPlaylists()
         val playlist = playlists.find { it.name == playlistName }
+
+        // EXAMPLE
+//        val playlist = playlists.find { it.name == playlistName }
 
         if (playlist == null) {
             throw IllegalArgumentException("Playlist '$playlistName' not found.")
@@ -197,6 +205,27 @@ class JsonYouTubeManagerObjectClass private constructor() :
         }
     }
 
+    fun migratePlaylists() {
+        val jsonFiles = File(".").listFiles { file ->
+            file.isFile && file.extension == "json"
+        } ?: return
+
+        jsonFiles.map {
+            try {
+                val jsonContent = it.readText()
+                val playlist: Playlist? = json.decodeFromString<Playlist?>(jsonContent)
+                if (playlist == null) {
+                    println("Couldn't cast to playlist!")
+                }
+                val playlistFile = File("src/main/resources/playlists/${it.name}")
+                Files.move(it.toPath(), playlistFile.toPath())
+            } catch (e: Exception) {
+//                e.printStackTrace()
+                println("${it.name} ignored")
+            }
+        }
+     }
+
     override fun savePlaylistToFile(playlist: Playlist) {
         val file = File("src/main/resources/playlists/${playlist.name}.json")
         val jsonContent = json.encodeToString(playlist)
@@ -204,6 +233,9 @@ class JsonYouTubeManagerObjectClass private constructor() :
     }
 
     override fun loadPlaylists() {
+
+        migratePlaylists()
+
         val playlistFiles = File("src/main/resources/playlists").listFiles { file ->
             file.isFile && file.extension == "json"
         } ?: return
