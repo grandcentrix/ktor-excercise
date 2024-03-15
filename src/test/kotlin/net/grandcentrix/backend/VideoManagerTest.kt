@@ -177,8 +177,6 @@ class VideoManagerTest {
         assertNull(typeVideo)
     }
 
-    //TODO test inputIsValid?
-
     @Test
     fun testUpdateVideo() {
         // updating video1

@@ -13,7 +13,7 @@ class FormManager() {
     private var actionTitle = getFormTitle(FormActionType.ADD)
     private var formAction = getFormAction(FormActionType.ADD)
     private var formActionType = FormActionType.ADD.name
-    var formAttributes = mutableMapOf("name" to actionTitle, "link" to formAction, "type" to formActionType)
+    val formAttributes = mutableMapOf("name" to actionTitle, "link" to formAction, "type" to formActionType)
 
     var video = Video("","","",VideoType.CUSTOM, "")
     val videoTypes = StorageManagerTypesFileInstance.getContent().toMutableList()
@@ -76,13 +76,29 @@ class FormManager() {
     }
 
     fun setVideoParameters(formParameters: Parameters): Boolean {
-        val id = formParameters.getOrFail("link")
-            .substringAfter("v=").substringBefore("&")
-        val link = formParameters.getOrFail("link").substringBefore("&")
-        val title = formParameters.getOrFail("title")
-            .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-        val videoType = formParameters.getOrFail("videoTypes")
-        var customTypeName = formParameters.getOrFail("customType").uppercase()
+        val id = formParameters
+            .getOrFail("link")
+            .substringAfter("v=")
+            .substringBefore("&")
+
+        val link = formParameters
+            .getOrFail("link")
+            .substringBefore("&")
+
+        val title = formParameters
+            .getOrFail("title")
+            .replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase()
+                else it.toString()
+            }
+
+        val videoType = formParameters
+            .getOrFail("videoTypes")
+
+        var customTypeName = formParameters
+            .getOrFail("customType")
+            .uppercase()
+
         var assignedType = assignType(videoType)
         val typeNames = videoTypes.find { it == customTypeName }
         val isDuplicated = VideoType.entries.find { it.name == customTypeName }
@@ -92,10 +108,13 @@ class FormManager() {
         } else if (videoType == VideoType.CUSTOM.name) {
             if (customTypeName.isBlank()) {
                 status = "Custom type name cannot be blank!"
+                //TODO custom exceptions
                 return false
+
             } else if (typeNames == null) {
                 videoTypes.add(customTypeName)
                 StorageManagerTypesFileInstance.setContent(videoTypes)
+
             } else if (isDuplicated != null) {
                     assignedType = assignType(customTypeName)
                     customTypeName = ""
@@ -110,11 +129,19 @@ class FormManager() {
     }
 
     fun setUpdatedVideoParameters(id: String, formParameters: Parameters) {
-        val newTitle = formParameters.getOrFail("title").replaceFirstChar {
-            if (it.isLowerCase()) it.titlecase() else it.toString()
-        }
-        val newType = formParameters.getOrFail("videoTypes")
-        val customTypeName = formParameters.getOrFail("customType").uppercase()
+        val newTitle = formParameters
+            .getOrFail("title")
+            .replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase() else it.toString()
+            }
+
+        val newType = formParameters
+            .getOrFail("videoTypes")
+
+        val customTypeName = formParameters
+            .getOrFail("customType")
+            .uppercase()
+
         val assignedType = assignType(newType)
 
         if (!setCustomTypeName(newType, customTypeName, assignedType)) {
