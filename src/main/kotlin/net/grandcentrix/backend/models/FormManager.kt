@@ -18,7 +18,7 @@ class FormManager() {
     var video = Video("","","",VideoType.CUSTOM, "")
     val videoTypes = StorageManagerTypesFileInstance.getContent().toMutableList()
     var status = String()
-    var updatedVideoValues = mutableMapOf<String,Any>()
+    val updatedVideoValues = mutableMapOf<String,Any>()
     private var youtubeUrls = listOf(
         "https://www.youtube.com/watch?v=",
         "https://youtube.com/watch?v=",
@@ -59,10 +59,16 @@ class FormManager() {
         }
     }
 
-     private fun videoParametersAreValid(id: String, title: String, link: String): Boolean {
+     private fun videoParametersAreValid(
+         id: String,
+         title: String,
+         link: String,
+         videoType: String,
+         customTypeName: String
+     ) {
         if (id.isBlank() || title.isBlank()) {
             status = "Video link and title cannot be blank!"
-            return false
+            throw IllegalArgumentException("Blank video link and title")
         } else if (!
             (link.startsWith(youtubeUrls[0]) ||
             link.startsWith(youtubeUrls[1]) ||
@@ -70,9 +76,11 @@ class FormManager() {
             link.startsWith(youtubeUrls[3]))
         ) {
             status = "Video link is not supported!"
-            return false
+            throw IllegalArgumentException("Video link is not supported!")
+        } else if (videoType == VideoType.CUSTOM.name && customTypeName.isBlank()) {
+            status = "Custom type name cannot be blank!"
+            throw IllegalArgumentException("Blank custom type")
         }
-        return true
     }
 
     fun setVideoParameters(formParameters: Parameters): Boolean {
@@ -103,15 +111,13 @@ class FormManager() {
         val typeNames = videoTypes.find { it == customTypeName }
         val isDuplicated = VideoType.entries.find { it.name == customTypeName }
 
-        if (!videoParametersAreValid(id, title, link)) {
+        try { videoParametersAreValid(id, title, link, videoType, customTypeName) }
+        catch (e: IllegalArgumentException) {
             return false
-        } else if (videoType == VideoType.CUSTOM.name) {
-            if (customTypeName.isBlank()) {
-                status = "Custom type name cannot be blank!"
-                //TODO custom exceptions
-                return false
+        }
 
-            } else if (typeNames == null) {
+        if (videoType == VideoType.CUSTOM.name) {
+            if (typeNames == null) {
                 videoTypes.add(customTypeName)
                 StorageManagerTypesFileInstance.setContent(videoTypes)
 
@@ -124,11 +130,12 @@ class FormManager() {
                 customTypeName = videoType
             }
         }
+
         video = Video(id, title, link, assignedType, customTypeName)
         return true
     }
 
-    fun setUpdatedVideoParameters(id: String, formParameters: Parameters) {
+    fun setUpdatedVideoParameters(id: String, formParameters: Parameters): Boolean {
         val newTitle = formParameters
             .getOrFail("title")
             .replaceFirstChar {
@@ -144,8 +151,9 @@ class FormManager() {
 
         val assignedType = assignType(newType)
 
-        if (!setCustomTypeName(newType, customTypeName, assignedType)) {
-            return
+        try { setCustomTypeName(newType, customTypeName, assignedType) }
+        catch (e: IllegalArgumentException) {
+            return false
         }
 
         updatedVideoValues.apply {
@@ -154,20 +162,21 @@ class FormManager() {
         }
 
         revertForm()
+        return true
     }
 
     private fun setCustomTypeName (
         newType: String,
         customTypeName: String,
         assignedType: VideoType,
-    ): Boolean {
+    ) {
         val typeNames = videoTypes.find { it == customTypeName }
         val isDuplicated = VideoType.entries.find { it.name == customTypeName }
 
         if (newType == VideoType.CUSTOM.name) {
             if (customTypeName.isBlank()) {
                 status = "Custom type name cannot be blank!"
-                return false
+                throw IllegalArgumentException("Blank custom type")
             } else {
                 if (isDuplicated != null) {
                     updatedVideoValues.apply {
@@ -184,7 +193,6 @@ class FormManager() {
                         StorageManagerTypesFileInstance.setContent(videoTypes)
                     }
                 }
-                return true
             }
 
         } // check if the user selected a custom type (not custom itself)
@@ -198,7 +206,6 @@ class FormManager() {
                     put("newCustomTypeName", "")
                 }
             }
-            return true
         }
     }
 

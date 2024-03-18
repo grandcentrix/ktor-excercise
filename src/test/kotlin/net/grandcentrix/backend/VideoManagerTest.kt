@@ -52,6 +52,7 @@ class VideoManagerTest {
     fun beforeTest() {
         File(FILE_NAME).writeText(videosJson)
 
+        mockkObject(FormManagerInstance)
         //NOTE define a storage (memory or file) and mock it -> file chose
         mockkObject(StorageManagerFileInstance, recordPrivateCalls = true)
         every { StorageManagerFileInstance["getFile"]() } returns File(FILE_NAME)
@@ -180,12 +181,14 @@ class VideoManagerTest {
     @Test
     fun testUpdateVideo() {
         // updating video1
-        FormManagerInstance.updatedVideoValues = mutableMapOf(
+        val updatedVideoValues = mutableMapOf<String,Any>(
             "id" to video2.id,
             "newTitle" to "Test",
             "newType" to VideoType.MUSIC, // before was NEWS
             "newCustomTypeName" to ""
         )
+        every { FormManagerInstance.updatedVideoValues } returns updatedVideoValues
+
         val previousType = video2.videoType.name
 
         VideoManagerInstance.updateVideo()
@@ -217,12 +220,13 @@ class VideoManagerTest {
 
     @Test
     fun testUpdateVideoBlankTitle() {
-        FormManagerInstance.updatedVideoValues = mutableMapOf(
+        val updatedVideoValues = mutableMapOf<String,Any>(
             "id" to video2.id,
             "newTitle" to "",
             "newType" to VideoType.NEWS,
             "newCustomTypeName" to ""
         )
+        every { FormManagerInstance.updatedVideoValues } returns updatedVideoValues
 
         VideoManagerInstance.updateVideo()
 
@@ -234,12 +238,13 @@ class VideoManagerTest {
 
     @Test
     fun testUpdateVideoTypeCastingFails() {
-        FormManagerInstance.updatedVideoValues = mutableMapOf(
+        val updatedVideoValues = mutableMapOf<String,Any>(
             "id" to video2.id,
             "newTitle" to "",
             "newType" to VideoType.NEWS.name, // should be VideoType not string
             "newCustomTypeName" to ""
         )
+        every { FormManagerInstance.updatedVideoValues } returns updatedVideoValues
 
         assertFailsWith(ClassCastException::class, "") {
             VideoManagerInstance.updateVideo()
@@ -248,12 +253,13 @@ class VideoManagerTest {
 
     @Test
     fun testUpdateVideoVideoNotFound() {
-        FormManagerInstance.updatedVideoValues = mutableMapOf(
+        val updatedVideoValues = mutableMapOf<String,Any>(
             "id" to "12345", // id not found
             "newTitle" to "Test",
             "newType" to VideoType.MUSIC,
             "newCustomTypeName" to ""
         )
+        every { FormManagerInstance.updatedVideoValues } returns updatedVideoValues
 
         assertFailsWith(NoSuchElementException::class, "") {
             VideoManagerInstance.updateVideo()

@@ -79,8 +79,10 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
             post("/update") {
                 val id = call.parameters.getOrFail<String>("id")
                 val formParameters = call.receiveParameters()
-                formManager.setUpdatedVideoParameters(id, formParameters)
-                videoManager.updateVideo()
+                val inputIsValid = formManager.setUpdatedVideoParameters(id, formParameters)
+                if (inputIsValid) {
+                    videoManager.updateVideo()
+                }
                 call.respondRedirect("/")
             }
 
@@ -95,8 +97,10 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
             post("/add-video") {
                 val videoType = call.parameters.getOrFail<String>("videoType")
                 val formParameters = call.receiveParameters()
-                formManager.setVideoParameters(formParameters)
-                videoManager.addVideo()
+                val inputIsValid = formManager.setVideoParameters(formParameters)
+                if (inputIsValid) {
+                    videoManager.addVideo()
+                }
                 call.respondRedirect("/$videoType/videos")
             }
 
@@ -119,8 +123,10 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
                 val id = call.parameters.getOrFail<String>("id")
                 val videoType = call.parameters.getOrFail<String>("videoType")
                 val formParameters = call.receiveParameters()
-                formManager.setUpdatedVideoParameters(id, formParameters)
-                videoManager.updateVideo()
+                val inputIsValid = formManager.setUpdatedVideoParameters(id, formParameters)
+                if (inputIsValid) {
+                    videoManager.updateVideo()
+                }
                 call.respondRedirect("/$videoType/videos")
             }
 

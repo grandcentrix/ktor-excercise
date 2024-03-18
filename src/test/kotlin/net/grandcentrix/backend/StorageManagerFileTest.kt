@@ -46,7 +46,7 @@ class StorageManagerFileTest {
     fun testGetContent() {
 //        every { StorageManagerFileInstance.getFile() } returns File(FILE_NAME)
 
-        val videoID = "1YBtzAAChU8" // existing in the file
+        val videoID = "IuTDuvYr7f0" // must exist in the videosList.json file
         val videos = StorageManagerFileInstance.videos
         val video = videos.find { it.id == videoID }!!
 

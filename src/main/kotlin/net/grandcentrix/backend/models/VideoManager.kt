@@ -78,7 +78,6 @@ open class VideoManager private constructor (
             VideoType.MUSIC -> musicVideos.removeIf { it.id == id }
             VideoType.NEWS -> newsVideos.removeIf { it.id == id }
             VideoType.CUSTOM -> customTypeVideos.removeIf { it.id == id }
-            else -> throw NotFoundException("Video not deleted. Type not found!")
         }
     }
 
@@ -110,7 +109,8 @@ open class VideoManager private constructor (
 
     fun deleteVideo(id: String) {
         val video = findVideo(id)!!
-        if (!inputIsValid(id)) {
+        try { inputIsValid(id) }
+        catch (e: NotFoundException) {
             return
         }
 
@@ -120,17 +120,12 @@ open class VideoManager private constructor (
         formManager.status = "Video deleted!"
     }
 
-    private fun inputIsValid(id: String): Boolean {
-        if (storage.videos.size <= 1) {
-            formManager.status = "The list cannot be empty!"
-            return false
-        }
+    private fun inputIsValid(id: String) {
         val video = findVideo(id)
         if (video === null) {
             formManager.status = "Video not found!"
-            return false
+            throw NotFoundException("Video not found")
         }
-        return true
     }
 
     fun updateVideo() {
