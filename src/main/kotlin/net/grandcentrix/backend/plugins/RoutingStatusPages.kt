@@ -42,7 +42,7 @@ fun Application.configureStatusPages() {
 
                 else -> call.respondTemplate(
                     "error.ftl",
-                    mapOf("errorMessage" to "Error 500. Server error.")
+                    mapOf("errorMessage" to "500: Server error - $cause")
                 )
             }
         }

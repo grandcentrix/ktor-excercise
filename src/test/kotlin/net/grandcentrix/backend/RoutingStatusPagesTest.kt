@@ -15,6 +15,7 @@ import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
+
 class RoutingStatusPagesTest {
 
     private val videoType = VideoType.MUSIC
@@ -47,9 +48,6 @@ class RoutingStatusPagesTest {
         }
 
         //TODO
-
-//        assertContains(response.bodyAsText(), "Error 401. Not authorized.")
-//        assertEquals(HttpStatusCode.OK, response.status)
     }
 
     @Test
@@ -63,9 +61,6 @@ class RoutingStatusPagesTest {
         }
 
         //TODO
-
-//        assertContains(response.bodyAsText(), "Error 403. Access not allowed.")
-//        assertEquals(HttpStatusCode.OK, response.status)
     }
 
     @Test
@@ -90,7 +85,6 @@ class RoutingStatusPagesTest {
         }
 
         assertEquals(HttpStatusCode.Found, response.status)
-//        assertContains(response.bodyAsText(), "Video link and title cannot be blank!")
     }
 
     @Test
@@ -114,7 +108,6 @@ class RoutingStatusPagesTest {
             ).formUrlEncode())
         }
 
-//        assertContains(response.bodyAsText(), "Video link and title cannot be blank!")
         assertEquals(HttpStatusCode.Found, response.status)
     }
 
@@ -138,7 +131,6 @@ class RoutingStatusPagesTest {
             ).formUrlEncode())
         }
 
-//        assertContains(response.bodyAsText(), "Custom type name cannot be blank!")
         assertEquals(HttpStatusCode.Found, response.status)
     }
 
@@ -162,24 +154,6 @@ class RoutingStatusPagesTest {
             ).formUrlEncode())
         }
 
-//        assertContains(response.bodyAsText(), "Custom type name cannot be blank!")
         assertEquals(HttpStatusCode.Found, response.status)
     }
-
-    @Test
-    fun testNoSuchElementException() = testApplication {
-        application {
-            configureStatusPages()
-        }
-
-        install(FreeMarker) {
-            templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
-        }
-//
-        //TODO
-
-//        assertContains(response.bodyAsText(), "Error 401. Not authorized.")
-//        assertEquals(HttpStatusCode.OK, response.status)
-    }
-
 }
