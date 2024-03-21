@@ -1,6 +1,7 @@
 package net.grandcentrix.backend.models
 
 import io.ktor.http.*
+import io.ktor.server.plugins.*
 import io.ktor.server.util.*
 import net.grandcentrix.backend.models.StorageManagerTypesFile.Companion.StorageManagerTypesFileInstance
 
@@ -68,7 +69,7 @@ class FormManager() {
      ) {
         if (id.isBlank() || title.isBlank()) {
             status = "Video link and title cannot be blank!"
-            throw IllegalArgumentException("Blank video link and title")
+            throw MissingRequestParameterException("Blank video link and title")
         } else if (!
             (link.startsWith(youtubeUrls[0]) ||
             link.startsWith(youtubeUrls[1]) ||
@@ -76,14 +77,14 @@ class FormManager() {
             link.startsWith(youtubeUrls[3]))
         ) {
             status = "Video link is not supported!"
-            throw IllegalArgumentException("Video link is not supported!")
+            throw MissingRequestParameterException("Video link is not supported!")
         } else if (videoType == VideoType.CUSTOM.name && customTypeName.isBlank()) {
             status = "Custom type name cannot be blank!"
-            throw IllegalArgumentException("Blank custom type")
+            throw MissingRequestParameterException("Blank custom type")
         }
     }
 
-    fun setVideoParameters(formParameters: Parameters): Boolean {
+    fun setVideoParameters(formParameters: Parameters) {
         val id = formParameters
             .getOrFail("link")
             .substringAfter("v=")
@@ -111,10 +112,7 @@ class FormManager() {
         val typeNames = videoTypes.find { it == customTypeName }
         val isDuplicated = VideoType.entries.find { it.name == customTypeName }
 
-        try { videoParametersAreValid(id, title, link, videoType, customTypeName) }
-        catch (e: IllegalArgumentException) {
-            return false
-        }
+        videoParametersAreValid(id, title, link, videoType, customTypeName)
 
         if (videoType == VideoType.CUSTOM.name) {
             if (typeNames == null) {
@@ -132,10 +130,9 @@ class FormManager() {
         }
 
         video = Video(id, title, link, assignedType, customTypeName)
-        return true
     }
 
-    fun setUpdatedVideoParameters(id: String, formParameters: Parameters): Boolean {
+    fun setUpdatedVideoParameters(id: String, formParameters: Parameters) {
         val newTitle = formParameters
             .getOrFail("title")
             .replaceFirstChar {
@@ -151,10 +148,7 @@ class FormManager() {
 
         val assignedType = assignType(newType)
 
-        try { setCustomTypeName(newType, customTypeName, assignedType) }
-        catch (e: IllegalArgumentException) {
-            return false
-        }
+        setCustomTypeName(newType, customTypeName, assignedType)
 
         updatedVideoValues.apply {
             put("id", id)
@@ -162,7 +156,6 @@ class FormManager() {
         }
 
         revertForm()
-        return true
     }
 
     private fun setCustomTypeName (
@@ -176,7 +169,7 @@ class FormManager() {
         if (newType == VideoType.CUSTOM.name) {
             if (customTypeName.isBlank()) {
                 status = "Custom type name cannot be blank!"
-                throw IllegalArgumentException("Blank custom type")
+                throw MissingRequestParameterException("Blank custom type")
             } else {
                 if (isDuplicated != null) {
                     updatedVideoValues.apply {

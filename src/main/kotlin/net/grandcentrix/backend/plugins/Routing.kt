@@ -30,10 +30,8 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
 
             post("/add-video") {
                 val formParameters = call.receiveParameters()
-                val inputIsValid = formManager.setVideoParameters(formParameters)
-                if (inputIsValid) {
-                    videoManager.addVideo()
-                }
+                formManager.setVideoParameters(formParameters)
+                videoManager.addVideo()
                 call.respondRedirect("/")
             }
 
@@ -79,10 +77,8 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
             post("/update") {
                 val id = call.parameters.getOrFail<String>("id")
                 val formParameters = call.receiveParameters()
-                val inputIsValid = formManager.setUpdatedVideoParameters(id, formParameters)
-                if (inputIsValid) {
-                    videoManager.updateVideo()
-                }
+                formManager.setUpdatedVideoParameters(id, formParameters)
+                videoManager.updateVideo()
                 call.respondRedirect("/")
             }
 
@@ -97,10 +93,8 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
             post("/add-video") {
                 val videoType = call.parameters.getOrFail<String>("videoType")
                 val formParameters = call.receiveParameters()
-                val inputIsValid = formManager.setVideoParameters(formParameters)
-                if (inputIsValid) {
-                    videoManager.addVideo()
-                }
+                formManager.setVideoParameters(formParameters)
+                videoManager.addVideo()
                 call.respondRedirect("/$videoType/videos")
             }
 
@@ -123,10 +117,8 @@ fun Application.configureRouting(videoManager: VideoManager, formManager: FormMa
                 val id = call.parameters.getOrFail<String>("id")
                 val videoType = call.parameters.getOrFail<String>("videoType")
                 val formParameters = call.receiveParameters()
-                val inputIsValid = formManager.setUpdatedVideoParameters(id, formParameters)
-                if (inputIsValid) {
-                    videoManager.updateVideo()
-                }
+                formManager.setUpdatedVideoParameters(id, formParameters)
+                videoManager.updateVideo()
                 call.respondRedirect("/$videoType/videos")
             }
 

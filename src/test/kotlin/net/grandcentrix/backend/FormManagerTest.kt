@@ -158,7 +158,9 @@ class FormManagerTest {
             append("customType", "")
         }
 
-        assertFalse(FormManagerInstance.setVideoParameters(formParameters))
+        assertFailsWith(MissingRequestParameterException::class, "") {
+            FormManagerInstance.setVideoParameters(formParameters)
+        }
     }
 
     @Test
@@ -171,7 +173,11 @@ class FormManagerTest {
             append("customType", "")
         }
 
-        assertFalse(FormManagerInstance.setVideoParameters(formParameters))
+        assertFailsWith(MissingRequestParameterException::class, "Parameter is incorrect") {
+            FormManagerInstance.setVideoParameters(
+                formParameters
+            )
+        }
     }
 
     @Test
@@ -215,7 +221,9 @@ class FormManagerTest {
             append("customType", "")
         }
 
-        FormManagerInstance.setUpdatedVideoParameters(VIDEO_ID, formParameters)
+        assertFailsWith(MissingRequestParameterException::class, "") {
+            FormManagerInstance.setUpdatedVideoParameters(VIDEO_ID, formParameters)
+        }
 
         assertEquals("Custom type name cannot be blank!", FormManagerInstance.status)
         assertNotEquals(formParameters["videoTypes"], FormManagerInstance.updatedVideoValues["newType"])

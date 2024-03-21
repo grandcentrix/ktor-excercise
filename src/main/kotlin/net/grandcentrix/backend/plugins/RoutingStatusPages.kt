@@ -9,6 +9,7 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.util.*
+import net.grandcentrix.backend.models.StorageManagerTypesFile.Companion.StorageManagerTypesFileInstance
 
 fun Application.configureStatusPages() {
     routing {
@@ -22,14 +23,22 @@ fun Application.configureStatusPages() {
                     "error.ftl",
                     mapOf("errorMessage" to "Error 403. Access not allowed.")
                 )
+                is MissingRequestParameterException -> {
+                    StorageManagerTypesFileInstance.getContent().forEach {
+                         if (call.url().contains(it)) {
+                            val path = call.url().substringBefore(it)+"$it/videos"
+                            call.respondRedirect(path)
+                        }
+                    }
 
-                is IllegalArgumentException -> call.respondRedirect(call.url())
-                is NotFoundException -> call.respondRedirect(call.url())
+                    if (call.url().contains("add-video")) {
+                        call.respondRedirect(call.url().substringBeforeLast("/"))
+                    }
 
-                is NullPointerException -> call.respondTemplate(
-                    "error.ftl",
-                    mapOf("errorMessage" to "Oops! It wasn't possible to fulfill your request.")
-                )
+                    call.respondRedirect(call.url().substringBefore("/"))
+                }
+
+                is NoSuchElementException -> call.respondRedirect(call.url())
 
                 else -> call.respondTemplate(
                     "error.ftl",

@@ -1,6 +1,5 @@
 package net.grandcentrix.backend.models
 
-import io.ktor.server.plugins.*
 import net.grandcentrix.backend.models.FormManager.Companion.FormManagerInstance
 import net.grandcentrix.backend.models.StorageManagerMemory.Companion.StorageManagerMemoryInstance
 
@@ -12,9 +11,9 @@ open class VideoManager private constructor (
     companion object {
         val VideoManagerInstance: VideoManager =
             VideoManager(StorageManagerMemoryInstance, FormManagerInstance)
-        private var musicVideos = mutableListOf<MusicVideo>()
-        private var newsVideos = mutableListOf<NewsVideo>()
-        private var customTypeVideos = mutableListOf<CustomTypeVideo>()
+        private val musicVideos = mutableListOf<MusicVideo>()
+        private val newsVideos = mutableListOf<NewsVideo>()
+        private val customTypeVideos = mutableListOf<CustomTypeVideo>()
     }
 
     fun defineStorage(
@@ -40,27 +39,33 @@ open class VideoManager private constructor (
         VideoType.CUSTOM -> CustomTypeVideo(
             this.id, this.title, this.link, this.videoType, this.customTypeName
         )
-
     }
 
     fun loadVideosToTypeList(videos: List<Video>) {
-        videos.map { it ->
+        videos.forEach {
             when (it.videoType) {
-                VideoType.MUSIC -> musicVideos = videos.mapNotNull {
-                    it.toType() as? MusicVideo
-                }.toMutableList()
+                VideoType.MUSIC ->  {
+                    val musicVideo = it.toType() as? MusicVideo
+                        ?: throw VideoTypeCastingException("Wrong video type casting")
+                    musicVideos.add(musicVideo)
+                }
 
-                VideoType.NEWS -> newsVideos = videos.mapNotNull {
-                    it.toType() as? NewsVideo
-                }.toMutableList()
+                VideoType.NEWS -> {
+                    val newsVideo = it.toType() as? NewsVideo
+                        ?: throw VideoTypeCastingException("Wrong video type casting")
+                    newsVideos.add(newsVideo)
+                }
 
-                VideoType.CUSTOM -> customTypeVideos = videos.mapNotNull {
-                    it.toType() as? CustomTypeVideo
-                }.toMutableList()
-
+                VideoType.CUSTOM -> {
+                    val customVideo = it.toType() as? CustomTypeVideo
+                        ?: throw VideoTypeCastingException("Wrong video type casting")
+                    customTypeVideos.add(customVideo)
+                }
             }
         }
     }
+
+    class VideoTypeCastingException(override val message: String?) : Exception()
 
     fun getVideosByType(videoType: String): MutableList<out Video> {
         val assignedType = assignType(videoType)
@@ -108,23 +113,21 @@ open class VideoManager private constructor (
     }
 
     fun deleteVideo(id: String) {
-        val video = findVideo(id)!!
-        try { inputIsValid(id) }
-        catch (e: NotFoundException) {
-            return
-        }
+        val video = findVideo(id)
+
+        inputIsValid(id)
 
         // delete video from the lists
-        deleteFromTypeList(video.id, video.videoType)
+        deleteFromTypeList(video!!.id, video.videoType)
         storage.removeItem(video)
         formManager.status = "Video deleted!"
     }
 
     private fun inputIsValid(id: String) {
         val video = findVideo(id)
-        if (video === null) {
+        if (video == null) {
             formManager.status = "Video not found!"
-            throw NotFoundException("Video not found")
+            throw NoSuchElementException("Video not found")
         }
     }
 

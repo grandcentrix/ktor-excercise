@@ -179,6 +179,13 @@ class VideoManagerTest {
     }
 
     @Test
+    fun testDeleteVideoNull() {
+        assertFailsWith(NoSuchElementException::class, "Video not found!") {
+            VideoManagerInstance.deleteVideo("12345")
+        }
+    }
+
+    @Test
     fun testUpdateVideo() {
         // updating video1
         val updatedVideoValues = mutableMapOf<String,Any>(
