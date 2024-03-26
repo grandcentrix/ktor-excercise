@@ -113,10 +113,9 @@ open class VideoManager private constructor (
     }
 
     fun deleteVideo(id: String) {
-        val video = findVideo(id)
-
         inputIsValid(id)
 
+        val video = findVideo(id)
         // delete video from the lists
         deleteFromTypeList(video!!.id, video.videoType)
         storage.removeItem(video)

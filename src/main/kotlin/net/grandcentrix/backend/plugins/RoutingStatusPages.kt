@@ -32,13 +32,16 @@ fun Application.configureStatusPages() {
                     }
 
                     if (call.url().contains("add-video")) {
-                        call.respondRedirect(call.url().substringBeforeLast("/"))
+                        call.respondRedirect(call.url().substringBeforeLast(call.request.local.uri))
                     }
 
-                    call.respondRedirect(call.url().substringBefore("/"))
+                    call.respondRedirect(call.url().substringBefore(call.request.local.uri))
                 }
 
-                is NoSuchElementException -> call.respondRedirect(call.url())
+                is NoSuchElementException -> {
+                    val path = call.url().substringBefore(call.request.local.uri)
+                    call.respondRedirect(path)
+                }
 
                 else -> call.respondTemplate(
                     "error.ftl",

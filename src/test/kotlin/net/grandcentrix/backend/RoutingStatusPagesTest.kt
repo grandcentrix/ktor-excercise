@@ -73,17 +73,23 @@ class RoutingStatusPagesTest {
         install(FreeMarker) {
             templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
         }
-
+        
         val response = client.post("/add-video") {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-            setBody(listOf(
-                "link" to "",
-                "title" to "",
-                "videoTypes" to videoType.name,
-                "customType" to ""
-            ).formUrlEncode())
+            setBody(
+                listOf(
+                    "link" to "",
+                    "title" to "",
+                    "videoTypes" to videoType.name,
+                    "customType" to ""
+                ).formUrlEncode()
+            )
         }
 
+        val location = response.headers["Location"].toString()
+        val redirectedResponse = client.get(location).bodyAsText()
+
+        assertContains(redirectedResponse, "Video link and title cannot be blank!")
         assertEquals(HttpStatusCode.Found, response.status)
     }
 
@@ -100,14 +106,20 @@ class RoutingStatusPagesTest {
 
         val response = client.post("/${videoType.name}/add-video") {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-            setBody(listOf(
-                "link" to "",
-                "title" to "",
-                "videoTypes" to videoType.name,
-                "customType" to ""
-            ).formUrlEncode())
+            setBody(
+                listOf(
+                    "link" to "",
+                    "title" to "",
+                    "videoTypes" to videoType.name,
+                    "customType" to ""
+                ).formUrlEncode()
+            )
         }
 
+        val location = response.headers["Location"].toString()
+        val redirectedResponse = client.get(location).bodyAsText()
+
+        assertContains(redirectedResponse, "Video link and title cannot be blank!")
         assertEquals(HttpStatusCode.Found, response.status)
     }
 
@@ -124,13 +136,19 @@ class RoutingStatusPagesTest {
 
         val response = client.post("/$videoID/update") {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-            setBody(listOf(
-                "title" to "",
-                "videoTypes" to VideoType.CUSTOM.name,
-                "customType" to ""
-            ).formUrlEncode())
+            setBody(
+                listOf(
+                    "title" to "",
+                    "videoTypes" to VideoType.CUSTOM.name,
+                    "customType" to ""
+                ).formUrlEncode()
+            )
         }
 
+        val location = response.headers["Location"].toString()
+        val redirectedResponse = client.get(location).bodyAsText()
+
+        assertContains(redirectedResponse, "Custom type name cannot be blank!")
         assertEquals(HttpStatusCode.Found, response.status)
     }
 
@@ -147,13 +165,36 @@ class RoutingStatusPagesTest {
 
         val response = client.post("/${videoType.name}/$videoID/update") {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-            setBody(listOf(
-                "title" to "",
-                "videoTypes" to VideoType.CUSTOM.name,
-                "customType" to ""
-            ).formUrlEncode())
+            setBody(
+                listOf(
+                    "title" to "",
+                    "videoTypes" to VideoType.CUSTOM.name,
+                    "customType" to ""
+                ).formUrlEncode()
+            )
         }
 
+        val location = response.headers["Location"].toString()
+        val redirectedResponse = client.get(location).bodyAsText()
+
+        assertContains(redirectedResponse, "Custom type name cannot be blank!")
         assertEquals(HttpStatusCode.Found, response.status)
+    }
+
+    @Test
+    fun testNoSuchElementException() = testApplication {
+        application {
+            configureRouting(VideoManagerInstance, FormManagerInstance)
+            configureStatusPages()
+        }
+
+        install(FreeMarker) {
+            templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
+        }
+
+        val response = client.get("12345/delete")
+
+        assertContains(response.bodyAsText(), "Video not found!")
+        assertEquals(HttpStatusCode.OK, response.status)
     }
 }
