@@ -5,8 +5,8 @@ import io.mockk.mockkObject
 import io.mockk.unmockkAll
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
-import net.grandcentrix.backend.models.StorageManagerTypesFile.Companion.StorageManagerTypesFileInstance
-import net.grandcentrix.backend.models.VideoType
+import net.grandcentrix.backend.StorageManagerTypesFile.Companion.StorageManagerTypesFileInstance
+import net.grandcentrix.backend.enums.VideoType
 import org.junit.Before
 import org.junit.Test
 import java.io.File

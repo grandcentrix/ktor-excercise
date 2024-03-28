@@ -1,5 +1,7 @@
 package net.grandcentrix.backend.models
 
+import net.grandcentrix.backend.enums.VideoType
+
 data class NewsVideo (
     override val id: String,
     override var title: String,

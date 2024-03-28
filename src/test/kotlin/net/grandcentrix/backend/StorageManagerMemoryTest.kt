@@ -3,9 +3,9 @@ package net.grandcentrix.backend
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
-import net.grandcentrix.backend.models.StorageManagerMemory.Companion.StorageManagerMemoryInstance
+import net.grandcentrix.backend.StorageManagerMemory.Companion.StorageManagerMemoryInstance
+import net.grandcentrix.backend.enums.VideoType
 import net.grandcentrix.backend.models.Video
-import net.grandcentrix.backend.models.VideoType
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.*

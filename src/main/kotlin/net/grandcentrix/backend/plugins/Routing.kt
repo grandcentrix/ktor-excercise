@@ -7,8 +7,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.util.*
-import net.grandcentrix.backend.models.FormManager
-import net.grandcentrix.backend.models.VideoManager
+import net.grandcentrix.backend.FormManager
+import net.grandcentrix.backend.VideoManager
 
 fun Application.configureRouting(videoManager: VideoManager, formManager: FormManager) {
     routing {

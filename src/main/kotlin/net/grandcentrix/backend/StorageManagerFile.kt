@@ -1,10 +1,12 @@
-package net.grandcentrix.backend.models
+package net.grandcentrix.backend
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
+import net.grandcentrix.backend.interfaces.StorageManagerInterface
+import net.grandcentrix.backend.models.Video
 import java.io.File
 
-open class StorageManagerFile(): StorageManagerInterface<List<Video>,List<Video>> {
+open class StorageManagerFile(): StorageManagerInterface<List<Video>, List<Video>> {
 
     companion object {
         val StorageManagerFileInstance: StorageManagerFile = StorageManagerFile()

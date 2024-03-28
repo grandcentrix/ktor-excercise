@@ -9,7 +9,7 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.util.*
-import net.grandcentrix.backend.models.StorageManagerTypesFile.Companion.StorageManagerTypesFileInstance
+import net.grandcentrix.backend.StorageManagerTypesFile.Companion.StorageManagerTypesFileInstance
 
 fun Application.configureStatusPages() {
     routing {
@@ -21,7 +21,7 @@ fun Application.configureStatusPages() {
             when (cause) {
                 is AuthorizationException -> call.respondTemplate(
                     "error.ftl",
-                    mapOf("errorMessage" to "Error 403. Access not allowed.")
+                    mapOf("errorMessage" to "Error 403. Forbidden.")
                 )
                 is MissingRequestParameterException -> {
                     StorageManagerTypesFileInstance.getContent().forEach {

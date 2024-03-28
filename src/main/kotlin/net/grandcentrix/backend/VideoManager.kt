@@ -1,10 +1,17 @@
-package net.grandcentrix.backend.models
+package net.grandcentrix.backend
 
-import net.grandcentrix.backend.models.FormManager.Companion.FormManagerInstance
-import net.grandcentrix.backend.models.StorageManagerMemory.Companion.StorageManagerMemoryInstance
+import net.grandcentrix.backend.FormManager.Companion.FormManagerInstance
+import net.grandcentrix.backend.StorageManagerMemory.Companion.StorageManagerMemoryInstance
+import net.grandcentrix.backend.enums.VideoType
+import net.grandcentrix.backend.enums.assignType
+import net.grandcentrix.backend.interfaces.StorageManagerInterface
+import net.grandcentrix.backend.models.CustomTypeVideo
+import net.grandcentrix.backend.models.MusicVideo
+import net.grandcentrix.backend.models.NewsVideo
+import net.grandcentrix.backend.models.Video
 
 open class VideoManager private constructor (
-    private var storage: StorageManagerInterface<List<Video>,List<Video>>,
+    private var storage: StorageManagerInterface<List<Video>, List<Video>>,
     private val formManager: FormManager
 ) {
 
@@ -16,9 +23,7 @@ open class VideoManager private constructor (
         private val customTypeVideos = mutableListOf<CustomTypeVideo>()
     }
 
-    fun defineStorage(
-        storageType: StorageManagerInterface<List<Video>, List<Video>>
-    ) {
+    fun defineStorage(storageType: StorageManagerInterface<List<Video>, List<Video>>) {
         storage = storageType
     }
 
@@ -68,12 +73,11 @@ open class VideoManager private constructor (
     class VideoTypeCastingException(override val message: String?) : Exception()
 
     fun getVideosByType(videoType: String): MutableList<out Video> {
-        val assignedType = assignType(videoType)
-        return when (assignedType) {
+        return when (val assignedType = assignType(videoType)) {
             VideoType.MUSIC -> musicVideos
             VideoType.NEWS -> newsVideos
             VideoType.CUSTOM -> customTypeVideos.filter {
-                it.customTypeName == videoType
+                it.videoType == assignedType
             }.toMutableList()
         }
     }
@@ -88,7 +92,7 @@ open class VideoManager private constructor (
 
     fun findVideo(id: String): Video? = storage.videos.find { it.id == id }
 
-    fun addToTypeList(video: Video): Video {
+    fun <T> addToTypeList(video: T): T {
         when (video) {
             is MusicVideo -> musicVideos.add(video)
             is NewsVideo -> newsVideos.add(video)
@@ -154,14 +158,14 @@ open class VideoManager private constructor (
 
     fun shuffle(): String {
         if (storage.getContent().isEmpty()) {
-            return "empty"
+            throw IllegalStateException("No videos found - storage is empty!")
         }
         return storage.getContent().map { it.id }.random()
     }
 
     fun shuffleByType(videoType: String): String {
         if (getVideosByType(videoType).isEmpty()) {
-            return "empty"
+            throw IllegalStateException("No videos found - storage is empty!")
         }
 
         return when (assignType(videoType)) {

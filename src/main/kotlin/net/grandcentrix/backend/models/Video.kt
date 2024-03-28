@@ -1,6 +1,7 @@
 package net.grandcentrix.backend.models
 
 import kotlinx.serialization.Serializable
+import net.grandcentrix.backend.enums.VideoType
 
 @Serializable
 open class Video (

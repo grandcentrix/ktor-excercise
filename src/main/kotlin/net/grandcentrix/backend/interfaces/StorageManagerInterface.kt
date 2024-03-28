@@ -1,4 +1,6 @@
-package net.grandcentrix.backend.models
+package net.grandcentrix.backend.interfaces
+
+import net.grandcentrix.backend.models.Video
 
 interface StorageManagerInterface<in I, out O> {
 

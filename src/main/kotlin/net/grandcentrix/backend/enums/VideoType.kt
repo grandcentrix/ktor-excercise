@@ -1,4 +1,4 @@
-package net.grandcentrix.backend.models
+package net.grandcentrix.backend.enums
 
 enum class VideoType {
     MUSIC, NEWS, CUSTOM;

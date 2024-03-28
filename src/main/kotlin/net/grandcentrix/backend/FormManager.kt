@@ -1,9 +1,13 @@
-package net.grandcentrix.backend.models
+package net.grandcentrix.backend
 
 import io.ktor.http.*
 import io.ktor.server.plugins.*
 import io.ktor.server.util.*
-import net.grandcentrix.backend.models.StorageManagerTypesFile.Companion.StorageManagerTypesFileInstance
+import net.grandcentrix.backend.StorageManagerTypesFile.Companion.StorageManagerTypesFileInstance
+import net.grandcentrix.backend.enums.VideoType
+import net.grandcentrix.backend.enums.assignType
+import net.grandcentrix.backend.enums.FormActionType
+import net.grandcentrix.backend.models.Video
 
 class FormManager() {
 
@@ -16,7 +20,7 @@ class FormManager() {
     private var formActionType = FormActionType.ADD.name
     val formAttributes = mutableMapOf("name" to actionTitle, "link" to formAction, "type" to formActionType)
 
-    var video = Video("","","",VideoType.CUSTOM, "")
+    var video = Video("","","", VideoType.CUSTOM, "")
     val videoTypes = StorageManagerTypesFileInstance.getContent().toMutableList()
     var status = String()
     val updatedVideoValues = mutableMapOf<String,Any>()
@@ -27,27 +31,16 @@ class FormManager() {
         "www.youtube.com/watch?v="
     )
 
-    private fun getFormTitle(actionName: FormActionType): String {
-        when (actionName) {
-            FormActionType.ADD -> return "Add a new video:"
-            FormActionType.UPDATE -> return "Update video:"
-            else -> {
-                print("Error")
-                return "Wrong form action!"
-            }
-        }
+    private fun getFormTitle(actionName: FormActionType) = when (actionName) {
+            FormActionType.ADD -> "Add a new video:"
+            FormActionType.UPDATE -> "Update video:"
     }
 
-    private fun getFormAction(actionName: FormActionType, id: String = String()): String {
-        when (actionName) {
-            FormActionType.ADD -> return "/add-video"
-            FormActionType.UPDATE -> return "/${id}/update"
-            else -> {
-                print("Error")
-                return "Wrong form action!"
-            }
-        }
+    private fun getFormAction(actionName: FormActionType, id: String = String()) = when (actionName) {
+            FormActionType.ADD -> "/add-video"
+            FormActionType.UPDATE -> "/${id}/update"
     }
+
 
     fun revertForm() {
         actionTitle = getFormTitle(FormActionType.ADD)

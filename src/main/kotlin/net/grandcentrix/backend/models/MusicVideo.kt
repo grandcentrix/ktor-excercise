@@ -1,5 +1,7 @@
 package net.grandcentrix.backend.models
 
+import net.grandcentrix.backend.enums.VideoType
+
 
 data class MusicVideo (
     override val id: String,

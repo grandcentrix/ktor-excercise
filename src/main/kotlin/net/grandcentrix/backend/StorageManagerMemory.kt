@@ -1,6 +1,9 @@
-package net.grandcentrix.backend.models
+package net.grandcentrix.backend
 
-open class StorageManagerMemory() : StorageManagerInterface<List<Video>,List<Video>> {
+import net.grandcentrix.backend.interfaces.StorageManagerInterface
+import net.grandcentrix.backend.models.Video
+
+open class StorageManagerMemory() : StorageManagerInterface<List<Video>, List<Video>> {
     companion object {
         val StorageManagerMemoryInstance: StorageManagerMemory = StorageManagerMemory()
         const val VIDEO_ID = "1YBtzAAChU8"

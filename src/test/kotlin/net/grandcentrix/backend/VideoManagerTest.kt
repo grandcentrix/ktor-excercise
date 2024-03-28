@@ -1,18 +1,16 @@
 package net.grandcentrix.backend
 
-import io.mockk.every
-import io.mockk.mockkObject
-import io.mockk.unmockkAll
+import io.mockk.*
 import junit.framework.TestCase.assertEquals
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
-import net.grandcentrix.backend.models.FormManager.Companion.FormManagerInstance
+import net.grandcentrix.backend.FormManager.Companion.FormManagerInstance
+import net.grandcentrix.backend.StorageManagerFile.Companion.StorageManagerFileInstance
+import net.grandcentrix.backend.VideoManager.Companion.VideoManagerInstance
+import net.grandcentrix.backend.enums.VideoType
 import net.grandcentrix.backend.models.MusicVideo
 import net.grandcentrix.backend.models.NewsVideo
-import net.grandcentrix.backend.models.StorageManagerFile.Companion.StorageManagerFileInstance
 import net.grandcentrix.backend.models.Video
-import net.grandcentrix.backend.models.VideoManager.Companion.VideoManagerInstance
-import net.grandcentrix.backend.models.VideoType
 import java.io.File
 import kotlin.reflect.jvm.internal.impl.load.java.lazy.descriptors.DeclaredMemberIndex.Empty
 import kotlin.test.*
@@ -110,6 +108,24 @@ class VideoManagerTest {
     }
 
     @Test
+    fun testGetVideosByTypeCustomType() {
+        val video = Video(
+            "IXwVSUexFyM",
+            "Lorde - The Path",
+            "https://www.youtube.com/watch?v=IXwVSUexFyM",
+            VideoType.CUSTOM,
+            "Lorde songs"
+        )
+        val videosByType = VideoManagerInstance.getVideosByType(video.videoType.name)
+
+        assertNotNull(videosByType)
+        assertEquals(video.id, video.id)
+        assertEquals(video.title, video.title)
+        assertEquals(video.link, video.link)
+        assertEquals(video.videoType, video.videoType)
+    }
+
+    @Test
     fun testGetVideosByTypeEmptyList() {
         val videos = VideoManagerInstance.getVideosByType("Test") // type doesn't exist
         assertIs<MutableList<Empty>>(videos)
@@ -146,14 +162,28 @@ class VideoManagerTest {
         val newsVideo = VideoManagerInstance.addToTypeList(video)
         val newsVideos = VideoManagerInstance.getVideosByType(VideoType.NEWS.name)
         assertContains(newsVideos, newsVideo)
+    }
 
+    @Test
+    fun testAddToTypeListFails() {
+        val video = Video(
+            "EeRfSNx5RhE",
+            "Test",
+            "https://www.youtube.com/watch?v=EeRfSNx5RhE",
+            VideoType.NEWS,
+            ""
+        )
+
+        assertFailsWith(ClassCastException::class, "Video type not found!") {
+            VideoManagerInstance.addToTypeList(video)
+        }
     }
 
     @Test
     fun testAddVideo() {
         val id = "0MiR7bC9B5o"
         val title = "test"
-        val link = "https://www.youtube.com/watch?v=0MiR7bC9B5o&list=PL6NdkXsPL07KN01gH2vucrHCEyyNmVEx4&index=4&pp=iAQB8AUB"
+        val link = "https://www.youtube.com/watch?v=0MiR7bC9B5o"
         val videoType = VideoType.MUSIC
         val newVideo = Video(id, title, link, videoType)
 
@@ -166,6 +196,20 @@ class VideoManagerTest {
 
         assertNotNull(video)
         assertNotNull(musicVideo)
+    }
+
+    @Test
+    fun testAddVideoAlreadyExists() {
+        val id = StorageManagerFileInstance.videos.first().id
+        val title = "test"
+        val link = "https://www.youtube.com/watch?v=$id"
+        val videoType = VideoType.MUSIC
+        val newVideo = Video(id, title, link, videoType)
+
+        FormManagerInstance.video = newVideo
+        VideoManagerInstance.addVideo()
+
+        assertContains(FormManagerInstance.status,"Video already exists!")
     }
 
     @Test
@@ -281,11 +325,44 @@ class VideoManagerTest {
     }
 
     @Test
+    fun testShuffleException() {
+        mockkStatic(VideoManagerInstance::getVideos)
+        every { VideoManagerInstance.getVideos() } returns emptyList()
+
+        assertFailsWith(IllegalStateException::class, "No videos found - storage is empty!") {
+            VideoManagerInstance.shuffle()
+        }
+        unmockkStatic(VideoManagerInstance::getVideos)
+    }
+
+    @Test
     fun testShuffleByType() {
         val randomID = VideoManagerInstance.shuffleByType(video2.videoType.name) // type that exists in the list
         val videoID = VideoManagerInstance.getVideosByType(video2.videoType.name)
             .find {it.id == randomID}
         assertNotNull(videoID)
+    }
+
+    @Test
+    fun testShuffleByTypeException() {
+        mockkObject(VideoManagerInstance)
+        every { VideoManagerInstance.getVideosByType(VideoType.NEWS.name) } returns mutableListOf()
+
+        assertFailsWith(IllegalStateException::class, "No videos found - storage is empty!") {
+            VideoManagerInstance.shuffleByType(VideoType.NEWS.name)
+        }
+        unmockkObject(VideoManagerInstance)
+    }
+
+    @Test
+    fun testVideoTypeCastingException() {
+        val video = video2
+
+        assertFailsWith(VideoManager.VideoTypeCastingException::class, "Wrong video type casting"){
+            video as? MusicVideo
+                ?: throw VideoManager.VideoTypeCastingException("Wrong video type casting")
+        }
+
     }
 
 }

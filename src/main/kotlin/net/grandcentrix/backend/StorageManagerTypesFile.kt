@@ -1,10 +1,11 @@
-package net.grandcentrix.backend.models
+package net.grandcentrix.backend
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
+import net.grandcentrix.backend.interfaces.StorageManagerInterface
 import java.io.File
 
-open class StorageManagerTypesFile: StorageManagerInterface<List<String>,List<String>> {
+open class StorageManagerTypesFile: StorageManagerInterface<List<String>, List<String>> {
     companion object {
         val StorageManagerTypesFileInstance: StorageManagerTypesFile = StorageManagerTypesFile()
         private const val FILE_NAME = "src/main/resources/videoTypes.json"
@@ -18,12 +19,6 @@ open class StorageManagerTypesFile: StorageManagerInterface<List<String>,List<St
             return emptyList()
         }
         return Json.decodeFromString<List<String>>(fileText)
-    }
-
-     fun removeItem(item: String) {
-        val types = getContent().toMutableList()
-        types.remove(item)
-        setContent(types)
     }
 
     override fun setContent(list: List<String>) {

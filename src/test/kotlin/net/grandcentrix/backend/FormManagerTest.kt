@@ -7,11 +7,11 @@ import io.mockk.mockkObject
 import io.mockk.unmockkAll
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
-import net.grandcentrix.backend.models.FormActionType
-import net.grandcentrix.backend.models.FormManager.Companion.FormManagerInstance
-import net.grandcentrix.backend.models.StorageManagerTypesFile.Companion.StorageManagerTypesFileInstance
+import net.grandcentrix.backend.FormManager.Companion.FormManagerInstance
+import net.grandcentrix.backend.StorageManagerTypesFile.Companion.StorageManagerTypesFileInstance
+import net.grandcentrix.backend.enums.FormActionType
+import net.grandcentrix.backend.enums.VideoType
 import net.grandcentrix.backend.models.Video
-import net.grandcentrix.backend.models.VideoType
 import org.junit.Before
 import java.io.File
 import kotlin.test.*
@@ -160,6 +160,22 @@ class FormManagerTest {
 
         assertFailsWith(MissingRequestParameterException::class, "") {
             FormManagerInstance.setVideoParameters(formParameters)
+        }
+    }
+
+    @Test
+    fun testSetVideoParametersCustomTypeBlank() {
+        val formParameters = Parameters.build {
+            append("link", VIDEO_LINK)
+            append("title", VIDEO_TITLE)
+            append("videoTypes", VideoType.CUSTOM.name)
+            append("customType", "") // blank
+        }
+
+        assertFailsWith(MissingRequestParameterException::class, "Blank custom type") {
+            FormManagerInstance.setVideoParameters(
+                formParameters
+            )
         }
     }
 

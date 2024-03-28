@@ -6,9 +6,9 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.freemarker.*
 import io.ktor.server.testing.*
-import net.grandcentrix.backend.models.FormManager.Companion.FormManagerInstance
-import net.grandcentrix.backend.models.VideoManager.Companion.VideoManagerInstance
-import net.grandcentrix.backend.models.VideoType
+import net.grandcentrix.backend.FormManager.Companion.FormManagerInstance
+import net.grandcentrix.backend.VideoManager.Companion.VideoManagerInstance
+import net.grandcentrix.backend.enums.VideoType
 import net.grandcentrix.backend.plugins.configureRouting
 import net.grandcentrix.backend.plugins.configureStatusPages
 import kotlin.test.Test
@@ -38,7 +38,7 @@ class RoutingStatusPagesTest {
     }
 
     @Test
-    fun testNotAuthorized() = testApplication {
+    fun testForbidden() = testApplication {
         application {
             configureStatusPages()
         }
@@ -48,10 +48,11 @@ class RoutingStatusPagesTest {
         }
 
         //TODO
+
     }
 
     @Test
-    fun testAccessNotAllowed() = testApplication {
+    fun testNotAuthorized() = testApplication {
         application {
             configureStatusPages()
         }
