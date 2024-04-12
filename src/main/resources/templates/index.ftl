@@ -2,11 +2,15 @@
 <@layout.header>
 
         <section class="container-left">
-            <iframe width="100%" height="550px"
+            <#if (videos?size == 0) >
+                <h2 style="background-color: transparent;">No videos added.</h2>
+            <#elseif (videos?size > 0) >
+                <iframe width="100%" height="550px"
                     src="https://www.youtube.com/embed/${randomId}">
-            </iframe>
+                </iframe>
 
-            <a class="shuffle" href="/shuffle">Shuffle</a>
+                <a class="shuffle" href="/shuffle">Shuffle</a>
+            </#if>
         </section>
 
         <section class="container-right">
@@ -23,22 +27,31 @@
                         </label>
                     </#if>
                     <#if formAction["type"] == "UPDATE">
-                        <label>
-                            ${video.link}
-                        </label>
+                        <p class="actualValues" style="margin-top: 0">
+                            <label for="videoTypes">Video Link: <br> </label>
+                            <span>
+                                    <a href="${video.link}">${video.link}</a>
+                                </span>
+                            <br><br>
+                            <label for="videoTypes">Current title: <br> </label>
+                            <span style="font-weight: normal">
+                                    ${video.title}
+                                </span>
+                        </p>
 
                     </#if>
                     <label>
                         <input placeholder="Insert video title" type="text" name="title">
                     </label>
 
-                    <p>
+                    <p style="margin-top: 0">
                         <label for="videoTypes">Choose a type:</label>
                         <select name="videoTypes" id="videoTypes">
                             <#list videoTypes as type>
                                 <option name="type" value="${type}">${type}</option>
                             </#list>
                         </select>
+
                         <label>
                             <input placeholder="Custom type name" type="text" name="customType">
                         </label>
@@ -54,24 +67,28 @@
             <h2>Added videos: </h2>
             <ul class="videos-list">
 
-                <#list videos as video>
-                    <li>
-                        <span style="display: flex;align-items: center;">
-                            <a href="https://www.youtube.com/watch?v=${video.id}">${video.title}</a>
-                            <#if video.videoType == "CUSTOM">
-                                <a class="button-type" href="${video.customTypeName}/videos">${video.customTypeName}</a>
-                            </#if>
-                            <#if video.videoType != "CUSTOM">
-                                <a class="button-type" href="${video.videoType}/videos">${video.videoType}</a>
-                            </#if>
-                        </span>
+                <#if (videos?size > 0)>
+                    <#list videos as video>
+                        <li>
+                            <span style="display: flex;align-items: center;">
+                                <a href="https://www.youtube.com/watch?v=${video.id}">${video.title}</a>
+                                <#if video.videoType == "CUSTOM">
+                                    <a class="button-type" href="${video.customTypeName}/videos">${video.customTypeName}</a>
+                                </#if>
+                                <#if video.videoType != "CUSTOM">
+                                    <a class="button-type" href="${video.videoType}/videos">${video.videoType}</a>
+                                </#if>
+                            </span>
 
-                        <span>
-                            <a class="button" href="${video.id}/update">Edit</a>
-                            <a class="button" href="${video.id}/delete">Delete</a>
-                        </span>
-                    </li>
-                </#list>
+                            <span>
+                                <a class="button" href="${video.id}/update">Edit</a>
+                                <a class="button" href="${video.id}/delete">Delete</a>
+                            </span>
+                        </li>
+                    </#list>
+                <#else>
+                    <p>The list is empty. Start adding videos!</p>
+                </#if>
             </ul>
 
 

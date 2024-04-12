@@ -3,10 +3,10 @@
     <html lang="en">
     <head>
         <title>Video Shuffle</title>
-        <link href="/style.css" rel="stylesheet" />
+        <link href="/static/style.css" rel="stylesheet" />
     </head>
     <body>
-    <h1><a href="/">Videos Shuffle</a></h1>
+    <h1> <img alt="" class="logo" src="/static/video-icon.png"><a href="/">Videos Shuffle</a></h1>
     <section class="container">
         <#nested>
     </section>

@@ -2,11 +2,15 @@
 <@layout.header>
 
         <section class="container-left">
-            <iframe width="100%" height="550px"
-                    src="https://www.youtube.com/embed/${randomId}">
-            </iframe>
+            <#if (videos?size == 0) >
+                <h2 style="background-color: transparent;">No videos added.</h2>
+            <#elseif (videos?size > 0) >
+                <iframe width="100%" height="550px"
+                        src="https://www.youtube.com/embed/${randomId}">
+                </iframe>
 
-            <a class="shuffle" href="/${videoType}/shuffle">Shuffle</a>
+                <a class="shuffle" href="/${videoType}/shuffle">Shuffle</a>
+            </#if>
         </section>
 
         <section class="container-right">
@@ -23,9 +27,17 @@
                         </label>
                     </#if>
                     <#if formAction["type"] == "UPDATE">
-                        <label>
-                            ${video.link}
-                        </label>
+                        <p class="actualValues" style="margin-top: 0">
+                            <label for="videoTypes">Video Link: <br> </label>
+                            <span>
+                                <a href="${video.link}">${video.link}</a>
+                            </span>
+                            <br><br>
+                            <label for="videoTypes">Current title: <br> </label>
+                            <span style="font-weight: normal">
+                                ${video.title}
+                            </span>
+                        </p>
                     </#if>
 
                     <label>
@@ -33,11 +45,12 @@
                     </label>
 
                     <#if formAction["type"] == "ADD">
-                    <p>
+                    <p style="margin-top: 0">
                         <label for="videoTypes">Choose a type:</label>
                         <select name="videoTypes" id="videoTypes">
                             <option name="type" value="${videoType}">${videoType}</option>
                         </select>
+
                         <label>
                             <input placeholder="Custom type name" type="text" name="customType">
                         </label>
@@ -75,6 +88,7 @@
             </div>
             <ul class="videos-list">
 
+                <#if (videos?size > 0)>
                 <#list videos as video>
                     <li>
                         <span style="display: flex;align-items: center;">
@@ -93,6 +107,9 @@
                         </span>
                     </li>
                 </#list>
+                <#else>
+                    <p>The list is empty. Add videos to this type!</p>
+                </#if>
             </ul>
 
         </section>

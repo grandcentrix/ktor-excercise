@@ -1,8 +1,13 @@
 package net.grandcentrix.backend.models
 
 import kotlinx.serialization.Serializable
+import net.grandcentrix.backend.enums.VideoType
 
 @Serializable
-open class Video(open val id: String, open var title: String, open val link: String, open var videoType: VideoType, open var customTypeName: String = String()) {
-
-}
+open class Video (
+    open val id: String,
+    open var title: String,
+    open val link: String,
+    open var videoType: VideoType,
+    open var customTypeName: String = String()
+)

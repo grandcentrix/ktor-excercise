@@ -1,13 +1,16 @@
-package net.grandcentrix.backend.models
+package net.grandcentrix.backend.interfaces
+
+import net.grandcentrix.backend.models.Video
 
 interface StorageManagerInterface<in I, out O> {
+
     val videos: MutableList<Video>
         get() = mutableListOf()
 
     fun getContent(): O
-    fun getEntry(item: Video) {}
-    fun setEntry(item: Video) {}
-    fun removeEntry(item: Video) {}
+    fun getItem(item: Video) {}
+    fun setItem(item: Video) {}
+    fun removeItem(item: Video) {}
     fun updateStorage() {}
     fun setContent(list: I)
 }
